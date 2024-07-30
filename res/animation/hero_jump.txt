@@ -1,0 +1,12 @@
+hero_jump.png, 0, 0, 140, 143
+hero_jump.png, 140, 0, 122, 125
+hero_jump.png, 262, 0, 144, 143
+hero_jump.png, 406, 0, 144, 143
+hero_jump.png, 550, 0, 100, 119
+hero_jump.png, 650, 0, 144, 143
+hero_jump.png, 794, 0, 144, 143
+hero_jump.png, 938, 0, 144, 143
+hero_jump.png, 1082, 0, 138, 99
+hero_jump.png, 1220, 0, 144, 150
+hero_jump.png, 1364, 0, 120, 125
+hero_jump.png, 1484, 0, 144, 143

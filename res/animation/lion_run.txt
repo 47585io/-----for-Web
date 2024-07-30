@@ -1,0 +1,6 @@
+lion_run.png, 0, 0, 95, 93
+lion_run.png, 95, 0, 87, 93
+lion_run.png, 182, 0, 95, 95
+lion_run.png, 277, 0, 95, 92
+lion_run.png, 372, 0, 92, 94
+lion_run.png, 464, 0, 90, 98

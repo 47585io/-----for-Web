@@ -1,0 +1,2 @@
+hero_down.png, 0, 0, 124, 100
+hero_down.png, 124, 0, 150, 81
