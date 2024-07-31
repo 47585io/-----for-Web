@@ -1,15 +1,6 @@
-/** 
- * Represents a rectangle.
- * @class
- */
+
 class Rect 
 {
-    constructor(){
-        this.x = 0
-        this.y = 0
-        this.width = 0
-        this.height = 0
-    }
     /**
      * Create a rectangle.
      * @param {number} x - The x coordinate of the top-left corner.
@@ -29,10 +20,6 @@ class Rect
         this.height = height; // height of the rectangle
     }
 
-    set(x, y, width, height){
-        
-    }
-
     offset(dx, dy){
         this.x += dx
         this.y += dy
@@ -42,7 +29,13 @@ class Rect
 
     }
 
+    contains(x, y, width, height){
+
+    }
+
     intersects(x, y, width, height){
 
     }
+
+    
 }

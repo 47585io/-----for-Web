@@ -1,8 +1,34 @@
 class Obstacle
 { 
+    static ACTIVE_SHIFT = 31
+    static COLLISION_SHIFT = 30
+
     constructor(){
         this.mBounds = new Rect()
         this.mActiveAnimation = null
+        this.mPrivateFlags = 0
+    }
+
+    kill(){
+        this.mPrivateFlags |= (1 << ACTIVE_SHIFT)
+    }
+    isActive(){
+        return (this.mPrivateFlags >> ACTIVE_SHIFT & 1) == 0
+    }
+
+    setCantCollision(){
+
+    }
+    canCollision(){
+        
+    }
+
+    /**
+     * The method of callback before draw
+     * update your state
+     */
+    update(){
+
     }
 
     /** 
@@ -25,4 +51,16 @@ class Obstacle
      * @returns {boolean} if consume event, return ture
      */
     handleEvent(event){}
+}
+
+class Hero extends Obstacle
+{
+    constructor(){
+        super()
+        this.speed = 5
+    }
+
+    handleEvent(event){
+       
+    }
 }

@@ -5,33 +5,85 @@ class Scenes
      * @param {number} width  scenes width
      * @param {number} height scenes height
      */
-    constructor(width, height)
+    constructor(width, height, groudY)
     {
         /** @type {CanvasImageSource} */
         this.mBackgroundImage = null
         this.mWidth = width
         this.mHeight = height
+        this.mGroundY = groudY
         this.mScroll = 0
+
+        this.mCurrentHero = new Hero()
+        /** @type {Array<Obstacle>} */
+        this.mObstacles = new Array()
+        this.mCollisionCallback = null
     }
 
-    resize(width, height){
+    resize(width, height)
+    {
         this.mWidth = width
         this.mHeight = height
+
+        // put hero in the middle of the scenes
+        // and calculate it offset from the last position
+        // offset obstacles in the scenes
+        // so that they remain the same relative to the position of the hero
+        let middle = width / 2
+        
+    }
+
+    /**
+     * Get all obstacles in the specified rectangle
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} width 
+     * @param {number} height
+     * @returns {Array<Obstacle>} An array of all obstacles overlapping with the specified rectangle
+     */
+    getObstacles(x, y, width, height)
+    {
+        let ret = new Array()
+        for(let obstacle of this.mObstacles){
+            if(obstacle.mBounds.intersects(x, y, width, height))
+                ret.push(obstacle)
+        }
+        return ret
     }
 
     /**
      * 
      */
-    update(){
-        this.mScroll += 5
+    update()
+    {
+        this.mScroll += this.mCurrentHero.speed
+        this.mCurrentHero.update()
+        for(let i = 0; i < this.mObstacles.length; ++i){
+            if(this.mObstacles[i].isActive())
+                this.mObstacles[i].update()
+            else
+                this.mObstacles.splice(i--, 1)
+        }
+        if(this.mCollisionCallback != null)
+            this.checkCollision()
+    }
+
+    checkCollision()
+    {
+        for(var obstacle of this.mObstacles){
+            if(this.mCurrentHero.mBounds.intersects(obstacle.mBounds)){
+                this.mCollisionCallback.onCollision(this.mCurrentHero, obstacle)
+            }
+        }
     }
 
     /**
-     * Draw scenes background and elements in the scenes
+     * Draw scenes background and obstacles in the scenes
      * @param {CanvasRenderingContext2D} context 
      */
     draw(context){
         this.drawBackground(context)
+        this.dispatchDraw(context)
     }
 
     /**
@@ -72,10 +124,40 @@ class Scenes
             startOffset += drawWidth
         }
     }
+
+    dispatchDraw(context)
+    {
+        this.mCurrentHero.draw(context)
+        for(let obstacle of this.mObstacles){
+            if(obstacle.mBounds.intersects(0, 0, this.mWidth, this.mHeight))
+                obstacle.draw(context)
+        }
+    }
+
+    dispatchEvent(event){
+
+    }
 }
 
+class CollisionCallback{
+    onCollision(o1, o2){}
+}
 
-class GameManger
+class GameManger extends CollisionCallback
 {
-    
+    constructor(scenes){
+        this.mScenes = scenes
+    }
+
+    stop(){
+
+    }
+
+    resume(){
+        
+    }
+
+    exit(){
+
+    }
 }

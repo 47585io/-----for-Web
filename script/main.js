@@ -4,18 +4,26 @@
  */
 
 const backgroundHeight = 396
+const groundY = 350
 
 var canvas = document.getElementById("display")
 var context = canvas.getContext("2d")
 context.save() // first save
-var scenes = new Scenes(0, 0)
-FileUtils.loadImage(R.pictures.background).then(res => {scenes.mBackgroundImage = res})
+var scenes = creatScenes()
 window.onload = resizeGameDisplay
-window.addEventListener('resize', resizeGameDisplay);
+window.addEventListener("resize", resizeGameDisplay);
+
+function creatScenes()
+{
+    let scenes = new Scenes(0, 0, groundY)
+    FileUtils.loadImage(R.pictures.background).then(res => {scenes.mBackgroundImage = res})
+    return scenes
+}
 
 /**
  * When the window size changes, 
- * adjust the canvas size and scenes size so that the background is full of window
+ * adjust the canvas size and scenes size 
+ * so that the background is full of window
  */
 function resizeGameDisplay()
 {
@@ -24,9 +32,10 @@ function resizeGameDisplay()
     // The scaling of the window relative to the source image
     let sacle = Math.fround(height) / backgroundHeight 
     // The size of the scenes is the size of the source image
-    scenes.mHeight = backgroundHeight
+    let scenesHeight = backgroundHeight
     // Calculate the window width corresponding to the source width before scaling
-    scenes.mWidth = Math.floor(width / sacle)
+    let scenesWidth = Math.floor(width / sacle)
+    scenes.resize(scenesWidth, scenesHeight)
     // sacle canvas
     setGameDisplayElement(width, height, sacle)
 }
@@ -48,7 +57,7 @@ function setGameDisplayElement(width, height, sacle)
     canvas.style.height = height + "px"
 
     context.restore() // clear the last state
-    context.save()    // save original state
+    context.save()   // save original state
     // clipRect to Avoid drawing beyond the visible area
     context.beginPath()
     context.rect(0, 0, width, height)
