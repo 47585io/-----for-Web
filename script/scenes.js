@@ -17,6 +17,8 @@ class Scenes
         this.mCurrentHero = new Hero()
         /** @type {Array<Obstacle>} */
         this.mObstacles = new Array()
+        this.mObstacles.push(this.mCurrentHero)
+        this.mGameManger = new GameManger(this)
         this.mCollisionCallback = null
     }
 
@@ -51,28 +53,42 @@ class Scenes
         return ret
     }
 
+    clear(){
+
+    }
+
     /**
-     * 
+     * Update the location of obstacles in the scenes
+     * and check their collisions
      */
     update()
     {
+        // Follow hero
         this.mScroll += this.mCurrentHero.speed
-        this.mCurrentHero.update()
-        for(let i = 0; i < this.mObstacles.length; ++i){
-            if(this.mObstacles[i].isActive())
-                this.mObstacles[i].update()
-            else
-                this.mObstacles.splice(i--, 1)
-        }
-        if(this.mCollisionCallback != null)
-            this.checkCollision()
-    }
 
-    checkCollision()
-    {
-        for(var obstacle of this.mObstacles){
-            if(this.mCurrentHero.mBounds.intersects(obstacle.mBounds)){
-                this.mCollisionCallback.onCollision(this.mCurrentHero, obstacle)
+        // First, Update the state of each obstacle
+        for(let i = 0; i < this.mObstacles.length; ++i){
+            this.mObstacles[i].update()
+        }
+
+        // Then, Check hero's collision with each obstacle
+        if(this.mCollisionCallback != null && this.mCurrentHero.canCollision()){
+            let hero = this.mCurrentHero
+            for(let i = 1; i < this.mObstacles.length; ++i){
+                let obstacle = this.mObstacles[i]
+                if(obstacle.canCollision() && hero.mBounds.intersects(obstacle.mBounds))
+                    this.mCollisionCallback.onCollision(hero, obstacle)
+            }
+        }
+        
+        // Finally, Clear all dead obstacle or leave the scenes
+        for(let i = 0; i < this.mObstacles.length; ++i){
+            let obstacle = this.mObstacles[i]
+            if(!obstacle.isActive() || obstacle.mBounds.right() < 0){
+                this.mObstacles.splice(i--, 1)
+                // if hero dead, exit game
+                if(obstacle === this.mCurrentHero)
+                    this.mGameManger.exit()
             }
         }
     }
@@ -127,7 +143,6 @@ class Scenes
 
     dispatchDraw(context)
     {
-        this.mCurrentHero.draw(context)
         for(let obstacle of this.mObstacles){
             if(obstacle.mBounds.intersects(0, 0, this.mWidth, this.mHeight))
                 obstacle.draw(context)

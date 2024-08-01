@@ -20,6 +20,13 @@ class Rect
         this.height = height; // height of the rectangle
     }
 
+    right(){
+        return this.x + this.width
+    }
+    bottom(){
+        return this.y + this.height
+    }
+
     offset(dx, dy){
         this.x += dx
         this.y += dy
