@@ -14,7 +14,10 @@ class Res
             static lion_run = "lion_run.png"
         }
 
-        class animation{}
+        class animation
+        {
+            static hero_run = "hero_run.json"
+        }
 
         this.pictures = pictures
         this.animation = animation
@@ -30,7 +33,7 @@ class FileUtils
 
     /**
      * load image file from pictures directory
-     * @param {string} path The path to the image file
+     * @param {string} path The path to the image file relative pictures directory
      * @returns {Promise<CanvasImageSource>} 
      *      A Promise that resolves to a CanvasImageSource, 
      *      Handle image in then(), and must return image for next promise 
@@ -42,7 +45,7 @@ class FileUtils
         
         if(data === undefined){
             // The path is first load
-            console.log("load " + path)
+            console.log("load image from " + path)
             let loadPromise = this.newImagePromise(path)
                 .then(image => {
                     // on image load, save it in the map
@@ -90,9 +93,11 @@ class FileUtils
     }
 
     /**
-     * 
-     * @param {string} path 
-     * @returns {AnimationFrames}
+     * load animation file from animation directory
+     * @param {string} path The path to the animation file relative animation directory
+     * @returns {Promise<AnimationFrames>}
+     *      A Promise that resolves to a AnimationFrames, 
+     *      Handle frames in then(), and must return frames for next promise 
      */
     static loadAnimation(path)
     {
@@ -100,6 +105,7 @@ class FileUtils
         let data = this.mPathToData.get(path)
 
         if(data === undefined){
+            console.log("load animation from " + path)
             let loadPromise = this.newFramesPromise(path)
                 .then(frames => {
                     this.mPathToData.set(path, frames)
@@ -119,43 +125,34 @@ class FileUtils
     }
 
     /**
-     * 
-     * @param {string} path 
-     * @returns {Promise<AnimationFrames>}
+     * load animation file from path in background thread
+     * @private 
+     * @param {string} path The path to the image file
+     * @returns {Promise<AnimationFrames>} A Promise that resolves to a AnimationFrames
      */
     static newFramesPromise(path)
-    {
-        this.loadTextFile(path)
-            .then(text => {
-                let data = JSON.parse(text)
-                this.loadImage(data.imagePath)
-                    .then(image => {
-                        let boundsArray = new Array()
-                        for(let bounds of data.frameBounds){
-                            let rect = new Rect(bounds[0], bounds[1], bounds[2], bounds[3])
-                            boundsArray.push(rect)
-                        }
-                        return new AnimationFrames(image, boundsArray)
-                    })
-            })
-    }
-
-    /**
-     * 
-     * @param {string} path 
-     * @returns {Promise<string>}
-     */
-    static loadTextFile(path) 
     {
         return fetch(path)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
-                return response.text(); 
+                return response.json()
+            })
+            .then(object => {
+                return this.loadImage(object.imagePath)
+                    .then(image => {
+                        let frameBounds = new Array()
+                        for(let bounds of object.frameBounds){
+                            let rect = new Rect(bounds[0], bounds[1], bounds[2], bounds[3])
+                            frameBounds.push(rect)
+                        }
+                        return new AnimationFrames(image, frameBounds)
+                    })
             })
             .catch(error => {
-                console.error('There has been a problem with your fetch operation:', error);
+                console.error(`Error loading frames from ${path}:`, error);
+                throw error; // rethrow the error to propagate it further
             });
     }
 }

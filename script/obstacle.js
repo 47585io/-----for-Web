@@ -7,6 +7,25 @@ class Obstacle
         this.mBounds = new Rect()
         this.mActiveAnimation = null
         this.mPrivateFlags = 0
+        this.mScenes = null
+    }
+
+    /**
+     * 
+     * @param {FrameAnimation} animation 
+     */
+    startAnimation(animation){
+        this.mActiveAnimation = animation
+        this.mActiveAnimation.start()
+    }
+
+    loadAnimation(path){
+        FileUtils.loadAnimation(path)
+            .then(frames => {
+                let animation = new FrameAnimation(frames)
+                this.startAnimation(animation)
+                return frames
+            })
     }
 
     kill(){
@@ -27,14 +46,24 @@ class Obstacle
      * The method of callback before draw
      * update your state
      */
-    update(){}
+    update(){
+        if(this.mActiveAnimation !== null)
+            this.mActiveAnimation.update()
+    }
 
     /** 
      * The method of callback when the refresh of each frame arrives, 
      * @param {CanvasRenderingContext2D} context draw your own images on the canvas
      */
-    draw(context) {
-        
+    draw(context) 
+    {
+        if(this.mActiveAnimation !== null){
+            let image = this.mActiveAnimation.getCurrentImage()
+            let srcBounds = this.mActiveAnimation.getCurrentImageBounds()
+            let dstBounds = this.mBounds
+            context.drawImage(image, srcBounds.left, srcBounds.top, srcBounds.width(), srcBounds.height(),
+                dstBounds.left, dstBounds.top, dstBounds.width(), dstBounds.height())
+        }
     }
 
     /**
@@ -58,6 +87,16 @@ class Hero extends Obstacle
     constructor(){
         super()
         this.speed = 5
+        this.loadAnimation(R.animation.hero_run)
+    }
+
+    update(){
+        if(this.mActiveAnimation === null)
+            return
+        let srcBounds = this.mActiveAnimation.getCurrentImageBounds()
+        let dstBounds = this.mBounds
+        dstBounds.right = dstBounds.left + srcBounds.width()
+        dstBounds.top = dstBounds.bottom - srcBounds.height()
     }
 
     handleEvent(event){

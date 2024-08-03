@@ -18,7 +18,8 @@ class Scenes
         this.mCurrentHero = new Hero()
         /** @type {Array<Obstacle>} */
         this.mObstacles = new Array()
-        this.mObstacles.push(this.mCurrentHero)
+        this.addObstacle(this.mCurrentHero)
+        this.mCurrentHero.mBounds.set(0, 0, 0, groudY)
         this.mGameManger = new GameManger(this)
         this.mCollisionCallback = null
     }
@@ -33,7 +34,8 @@ class Scenes
         // offset obstacles in the scenes
         // so that they remain the same relative to the position of the hero
         let middle = width / 2
-        
+        let bounds = this.mCurrentHero.mBounds
+        bounds.left = middle
     }
 
     /**
@@ -41,6 +43,11 @@ class Scenes
      */
     creatObstacle(){
 
+    }
+
+    addObstacle(obstacle){
+        obstacle.mScenes = this
+        this.mObstacles.push(obstacle)
     }
 
     /**
