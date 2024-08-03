@@ -10,26 +10,24 @@ class Obstacle
     }
 
     kill(){
-        this.mPrivateFlags |= (1 << ACTIVE_SHIFT)
+        this.mPrivateFlags |= (1 << Obstacle.ACTIVE_SHIFT)
     }
     isActive(){
-        return (this.mPrivateFlags >> ACTIVE_SHIFT & 1) == 0
+        return (this.mPrivateFlags >> Obstacle.ACTIVE_SHIFT & 1) == 0
     }
-
     setCantCollision(){
-
+        this.mPrivateFlags |= (1 << Obstacle.COLLISION_SHIFT)
     }
     canCollision(){
-        
+        return this.isActive() && 
+            (this.mPrivateFlags >> Obstacle.COLLISION_SHIFT & 1) == 0
     }
 
     /**
      * The method of callback before draw
      * update your state
      */
-    update(){
-
-    }
+    update(){}
 
     /** 
      * The method of callback when the refresh of each frame arrives, 
@@ -55,6 +53,8 @@ class Obstacle
 
 class Hero extends Obstacle
 {
+    static heroJumpHeight = 100
+
     constructor(){
         super()
         this.speed = 5

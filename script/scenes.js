@@ -12,6 +12,7 @@ class Scenes
         this.mWidth = width
         this.mHeight = height
         this.mGroundY = groudY
+        this.mGravity = 5
         this.mScroll = 0
 
         this.mCurrentHero = new Hero()
@@ -36,25 +37,33 @@ class Scenes
     }
 
     /**
+     * Creat new obstacle on the right side of the scenes
+     */
+    creatObstacle(){
+
+    }
+
+    /**
      * Get all obstacles in the specified rectangle
-     * @param {number} x 
-     * @param {number} y 
-     * @param {number} width 
-     * @param {number} height
+     * @param {number} left
+     * @param {number} top
+     * @param {number} right
+     * @param {number} bottom
      * @returns {Array<Obstacle>} An array of all obstacles overlapping with the specified rectangle
      */
-    getObstacles(x, y, width, height)
+    getObstacles(left, top, right, bottom)
     {
         let ret = new Array()
         for(let obstacle of this.mObstacles){
-            if(obstacle.mBounds.intersects(x, y, width, height))
+            if(obstacle.mBounds.intersects(left, top, right, bottom))
                 ret.push(obstacle)
         }
         return ret
     }
 
     clear(){
-
+        this.mObstacles.splice()
+        Object
     }
 
     /**
@@ -66,12 +75,13 @@ class Scenes
         // Follow hero
         this.mScroll += this.mCurrentHero.speed
 
-        // First, Update the state of each obstacle
+        // Update the location of each obstacle
         for(let i = 0; i < this.mObstacles.length; ++i){
+            this.mObstacles[i].mBounds.offset(-this.mCurrentHero.speed, this.mGravity)
             this.mObstacles[i].update()
         }
 
-        // Then, Check hero's collision with each obstacle
+        // Check hero's collision with each obstacle
         if(this.mCollisionCallback != null && this.mCurrentHero.canCollision()){
             let hero = this.mCurrentHero
             for(let i = 1; i < this.mObstacles.length; ++i){
@@ -80,17 +90,27 @@ class Scenes
                     this.mCollisionCallback.onCollision(hero, obstacle)
             }
         }
+
+        // Keep obstacles in the scenes above the ground
+        for(let obstacle of this.mObstacles){
+            if(obstacle.mBounds.bottom > this.mGroundY){
+                let yOffset = obstacle.mBounds.bottom - this.mGroundY
+                obstacle.mBounds.offset(0, -yOffset)
+            }
+        }
         
-        // Finally, Clear all dead obstacle or leave the scenes
+        // Clear all dead obstacle or leave the scenes
         for(let i = 0; i < this.mObstacles.length; ++i){
             let obstacle = this.mObstacles[i]
-            if(!obstacle.isActive() || obstacle.mBounds.right() < 0){
+            if(!obstacle.isActive() || obstacle.mBounds.right < 0){
                 this.mObstacles.splice(i--, 1)
                 // if hero dead, exit game
                 if(obstacle === this.mCurrentHero)
                     this.mGameManger.exit()
             }
         }
+
+        // Creat new obstacle on the right side of the scenes
     }
 
     /**
@@ -161,6 +181,7 @@ class CollisionCallback{
 class GameManger extends CollisionCallback
 {
     constructor(scenes){
+        super()
         this.mScenes = scenes
     }
 
