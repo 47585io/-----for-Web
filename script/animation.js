@@ -7,28 +7,37 @@ class FrameAnimation
     constructor(frames){
         this.mAnimationFrames = frames
         this.mAnimationListener = null
-        this.mFrameDuartion = 10
+        this.mFrameDuartion = 5
         this.delta = 0
+        this.currentIndex = 0
     }
 
     start(){
         this.delta = 0
+        this.currentIndex = 0
         if(this.mAnimationListener !== null)
-            this.mAnimationListener.onAnimationStart()
+            this.mAnimationListener.onAnimationStart(this)
     }
 
     update(){
         let animationDuartion = this.mFrameDuartion * this.mAnimationFrames.mFrameBounds.length
-        if(this.delta + 1 < animationDuartion)
+        let lastIndex = this.currentIndex
+        if(this.delta + 1 < animationDuartion){
             this.delta++
+        }else if(this.mAnimationListener !== null){
+            this.mAnimationListener.onAnimationEnd(this)
+        }
+        this.currentIndex = Math.floor(this.delta / this.mFrameDuartion)
+        if(lastIndex < this.currentIndex && this.mAnimationListener !== null)
+            this.mAnimationListener.onAnimationUpdate(this)
+
     }
 
     getCurrentImage(){
         return this.mAnimationFrames.mCurrentImage
     }
     getCurrentImageBounds(){
-        let currentIndex = this.delta / this.mFrameDuartion
-        return this.mAnimationFrames.mFrameBounds[currentIndex]
+        return this.mAnimationFrames.mFrameBounds[this.currentIndex]
     }
 }
 
@@ -47,9 +56,20 @@ class AnimationFrames
 
 class AnimationListener
 {
-    onAnimationStart(){}
+    onAnimationStart(animation){}
 
-    onAnimationUpdate(){}
+    onAnimationUpdate(animation){}
 
-    onAnimationEnd(){}
+    onAnimationEnd(animation){}
+}
+
+class RepeatAnimationListener extends AnimationListener
+{
+    onAnimationStart(animation){}
+
+    onAnimationUpdate(animation){}
+
+    onAnimationEnd(animation){
+        animation.start()
+    }
 }

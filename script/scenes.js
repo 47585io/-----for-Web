@@ -15,11 +15,11 @@ class Scenes
         this.mGravity = 5
         this.mScroll = 0
 
+        // can not， must ...
         this.mCurrentHero = new Hero()
         /** @type {Array<Obstacle>} */
         this.mObstacles = new Array()
         this.addObstacle(this.mCurrentHero)
-        this.mCurrentHero.mBounds.set(0, 0, 0, groudY)
         this.mGameManger = new GameManger(this)
         this.mCollisionCallback = null
     }
@@ -36,6 +36,7 @@ class Scenes
         let middle = width / 2
         let bounds = this.mCurrentHero.mBounds
         bounds.left = middle
+        bounds.bottom = this.mGroundY
     }
 
     /**
@@ -80,11 +81,11 @@ class Scenes
     update()
     {
         // Follow hero
-        this.mScroll += this.mCurrentHero.speed
+        this.mScroll += this.mCurrentHero.mSpeed
 
         // Update the location of each obstacle
         for(let i = 0; i < this.mObstacles.length; ++i){
-            this.mObstacles[i].mBounds.offset(-this.mCurrentHero.speed, this.mGravity)
+            this.mObstacles[i].mBounds.offset(-this.mCurrentHero.mSpeed, this.mGravity)
             this.mObstacles[i].update()
         }
 
@@ -202,5 +203,11 @@ class GameManger extends CollisionCallback
 
     exit(){
 
+    }
+
+    hasNextObstacle(){}
+
+    nextObstacle(){
+        
     }
 }

@@ -4,7 +4,7 @@
  */
 
 const backgroundHeight = 396
-const groundY = 350
+const groundY = 360
 
 var canvas = document.getElementById("display")
 var context = canvas.getContext("2d")

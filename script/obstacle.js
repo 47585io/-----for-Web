@@ -11,6 +11,15 @@ class Obstacle
     }
 
     /**
+     * The method of callback before you will added to the scenes, 
+     * prepare your data until you're ready to call finish 
+     * @param {(obstacle: Obstacle) => void} finish  finish(this), 
+     *      The callback of When the data preparation is completed, 
+     *      it is used to notify the scenes to add you to the scenes
+     */
+    prepare(finish){}
+
+    /**
      * 
      * @param {FrameAnimation} animation 
      */
@@ -43,7 +52,7 @@ class Obstacle
     }
 
     /**
-     * The method of callback before draw
+     * The method of callback before draw, 
      * update your state
      */
     update(){
@@ -52,7 +61,7 @@ class Obstacle
     }
 
     /** 
-     * The method of callback when the refresh of each frame arrives, 
+     * The method of callback when the refresh of each frame arrives
      * @param {CanvasRenderingContext2D} context draw your own images on the canvas
      */
     draw(context) 
@@ -67,13 +76,13 @@ class Obstacle
     }
 
     /**
-     * The method of callback when you collide with another obstacle, 
+     * The method of callback when you collide with another obstacle
      * @param {Obstacle} other colliding other obstacle
      */
     onCollision(other){}
 
     /**
-     * The method of callback when you can receive a DOM event, 
+     * The method of callback when you can receive a DOM event
      * @param {Event} event rceived event
      * @returns {boolean} if consume event, return ture
      */
@@ -82,15 +91,26 @@ class Obstacle
 
 class Hero extends Obstacle
 {
-    static heroJumpHeight = 100
+    static JUMP_HEIGHT = 100
+    static STATE_RUN = 0
+    static STATE_JUMP = 1
+    static STATE_DOWN = 2
 
     constructor(){
         super()
-        this.speed = 5
+        this.mSpeed = 5
+        this.mState = Hero.STATE_RUN
         this.loadAnimation(R.animation.hero_run)
     }
 
+    startAnimation(animation){
+        super.startAnimation(animation)
+        animation.mAnimationListener = new RepeatAnimationListener()
+    }
+
     update(){
+        super.update()
+        this.mBounds.offset(this.mSpeed, 0)
         if(this.mActiveAnimation === null)
             return
         let srcBounds = this.mActiveAnimation.getCurrentImageBounds()
