@@ -12,7 +12,8 @@ class Obstacle
 
     /**
      * The method of callback before you will added to the scenes, 
-     * prepare your data until you're ready to call finish 
+     * prepare your data until you're ready to call finish, 
+     * you must set your mActiveAnimation and mBounds
      * @param {(obstacle: Obstacle) => void} finish  finish(this), 
      *      The callback of When the data preparation is completed, 
      *      it is used to notify the scenes to add you to the scenes
@@ -20,21 +21,12 @@ class Obstacle
     prepare(finish){}
 
     /**
-     * 
+     * switch mActiveAnimation to animation and start animation
      * @param {FrameAnimation} animation 
      */
     startAnimation(animation){
         this.mActiveAnimation = animation
         this.mActiveAnimation.start()
-    }
-
-    loadAnimation(path){
-        FileUtils.loadAnimation(path)
-            .then(frames => {
-                let animation = new FrameAnimation(frames)
-                this.startAnimation(animation)
-                return frames
-            })
     }
 
     kill(){
@@ -52,8 +44,7 @@ class Obstacle
     }
 
     /**
-     * The method of callback before draw, 
-     * update your state
+     * The method of callback before draw, update your state
      */
     update(){
         if(this.mActiveAnimation !== null)
@@ -66,6 +57,8 @@ class Obstacle
      */
     draw(context) 
     {
+        // Draw the image of the current frame of
+        // the mActiveAnimation in the location of mBounds
         if(this.mActiveAnimation !== null){
             let image = this.mActiveAnimation.getCurrentImage()
             let srcBounds = this.mActiveAnimation.getCurrentImageBounds()
@@ -100,12 +93,24 @@ class Hero extends Obstacle
         super()
         this.mSpeed = 5
         this.mState = Hero.STATE_RUN
-        this.loadAnimation(R.animation.hero_run)
+        this.mAnimations = new Array(3)
     }
 
-    startAnimation(animation){
-        super.startAnimation(animation)
-        animation.mAnimationListener = new RepeatAnimationListener()
+    prepare(finish)
+    {
+        FileUtils.loadAnimation(R.animation.hero_run)
+            .then(run => {
+                this.mAnimations[Hero.STATE_RUN] = new FrameAnimation(run)
+                this.switchState(Hero.STATE_RUN)
+                this.mBounds.set(this.mActiveAnimation.getCurrentImageBounds())
+                finish(this)
+                return run
+            })
+    }
+
+    switchState(state){
+        this.mState = state
+        this.startAnimation(this.mAnimations[state])
     }
 
     update(){

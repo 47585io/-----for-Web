@@ -9,16 +9,9 @@ const groundY = 360
 var canvas = document.getElementById("display")
 var context = canvas.getContext("2d")
 context.save() // first save
-var scenes = creatScenes()
+var scenes = new Scenes(0, 0, groundY)
 window.onload = resizeGameDisplay
 window.addEventListener("resize", resizeGameDisplay);
-
-function creatScenes()
-{
-    let scenes = new Scenes(0, 0, groundY)
-    FileUtils.loadImage(R.pictures.background).then(res => {scenes.mBackgroundImage = res})
-    return scenes
-}
 
 /**
  * When the window size changes, 

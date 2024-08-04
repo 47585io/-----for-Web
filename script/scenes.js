@@ -16,34 +16,35 @@ class Scenes
         this.mScroll = 0
 
         // can not， must ...
-        this.mCurrentHero = new Hero()
+        this.mCurrentHero = null
         /** @type {Array<Obstacle>} */
         this.mObstacles = new Array()
-        this.addObstacle(this.mCurrentHero)
         this.mGameManger = new GameManger(this)
-        this.mCollisionCallback = null
     }
 
     resize(width, height)
     {
-        this.mWidth = width
+        this.mWidth =  width
         this.mHeight = height
 
         // put hero in the middle of the scenes
         // and calculate it offset from the last position
         // offset obstacles in the scenes
         // so that they remain the same relative to the position of the hero
-        let middle = width / 2
-        let bounds = this.mCurrentHero.mBounds
-        bounds.left = middle
-        bounds.bottom = this.mGroundY
+        if(this.mCurrentHero !== null){
+            let middle = mWidth >> 1
+            let bounds = this.mCurrentHero.mBounds
+            bounds.left = middle - (bounds.width() >> 1)
+            bounds.bottom = this.mGroundY
+        }
     }
 
     /**
      * Creat new obstacle on the right side of the scenes
      */
     creatObstacle(){
-
+        let obstacle = this.mGameManger.nextObstacle()
+        obstacle.prepare(this.addObstacle)
     }
 
     addObstacle(obstacle){
@@ -70,32 +71,35 @@ class Scenes
     }
 
     clear(){
-        this.mObstacles.splice()
-        Object
+       
     }
 
     /**
-     * Update the location of obstacles in the scenes
-     * and check their collisions
+     * Update the location of obstacles in the scenes, 
+     * and check their collisions, 
+     * and clear all dead obstacle or leave the scenes
      */
     update()
     {
+        if(this.mCurrentHero === null){
+            return
+        }
         // Follow hero
-        this.mScroll += this.mCurrentHero.mSpeed
+        let hero = this.mCurrentHero
+        this.mScroll += hero.mSpeed
 
         // Update the location of each obstacle
-        for(let i = 0; i < this.mObstacles.length; ++i){
-            this.mObstacles[i].mBounds.offset(-this.mCurrentHero.mSpeed, this.mGravity)
-            this.mObstacles[i].update()
+        for(let obstacle of this.mObstacles){
+            obstacle.mBounds.offset(-hero.mSpeed, this.mGravity)
+            obstacle.update()
         }
 
         // Check hero's collision with each obstacle
-        if(this.mCollisionCallback != null && this.mCurrentHero.canCollision()){
-            let hero = this.mCurrentHero
-            for(let i = 1; i < this.mObstacles.length; ++i){
-                let obstacle = this.mObstacles[i]
-                if(obstacle.canCollision() && hero.mBounds.intersects(obstacle.mBounds))
-                    this.mCollisionCallback.onCollision(hero, obstacle)
+        if(hero.canCollision()){
+            for(let obstacle of this.mObstacles){
+                if(obstacle !== hero && obstacle.canCollision() 
+                    && hero.mBounds.intersects(obstacle.mBounds))
+                    this.mGameManger.onCollision(hero, obstacle)
             }
         }
 
@@ -113,7 +117,7 @@ class Scenes
             if(!obstacle.isActive() || obstacle.mBounds.right < 0){
                 this.mObstacles.splice(i--, 1)
                 // if hero dead, exit game
-                if(obstacle === this.mCurrentHero)
+                if(obstacle === hero)
                     this.mGameManger.exit()
             }
         }
@@ -125,25 +129,27 @@ class Scenes
      * Draw scenes background and obstacles in the scenes
      * @param {CanvasRenderingContext2D} context 
      */
-    draw(context){
-        this.drawBackground(context)
-        this.dispatchDraw(context)
-    }
-
-    /**
-     * Draw background image of the scenes
-     * @param {CanvasRenderingContext2D} context 
-     */
-    drawBackground(context){
-        if(this.mBackgroundImage != null)
+    draw(context)
+    {
+        // Draw background image of the scenes
+        if(this.mBackgroundImage != null){
             this.drawCoverImage(context, this.mBackgroundImage, this.mScroll, 0, this.mWidth)
+        }
+        
+        // Draw bstacles in the scenes
+        // Only obstacles that are drawn in the visual area
+        // because some obstacles may exceed the scenes at resize
+        for(let obstacle of this.mObstacles){
+            if(obstacle.mBounds.intersects(0, 0, this.mWidth, this.mHeight))
+                obstacle.draw(context)
+        }
     }
 
     /**
      * Draw a background image that covers the width of the scenes
      * @param {CanvasRenderingContext2D} context 
      * @param {CanvasImageSource} image 
-     * @param {number} scroll Where the scene scroll
+     * @param {number} scroll Where the scenes scroll
      * @param {number} y Ordinate of drawing image
      * @param {number} display Scenes width
      */
@@ -169,21 +175,9 @@ class Scenes
         }
     }
 
-    dispatchDraw(context)
-    {
-        for(let obstacle of this.mObstacles){
-            if(obstacle.mBounds.intersects(0, 0, this.mWidth, this.mHeight))
-                obstacle.draw(context)
-        }
-    }
-
     dispatchEvent(event){
 
     }
-}
-
-class CollisionCallback{
-    onCollision(o1, o2){}
 }
 
 class GameManger extends CollisionCallback
@@ -191,7 +185,20 @@ class GameManger extends CollisionCallback
     constructor(scenes){
         super()
         this.mScenes = scenes
+
+        FileUtils.loadImage(R.pictures.background)
+            .then(res => {
+                scenes.mBackgroundImage = res
+                return res
+            })
+        
+        let hero = new Hero()
+        hero.prepare(obstacle => {
+            
+        })
     }
+
+    onCollision(o1, o2){}
 
     stop(){
 
@@ -208,6 +215,6 @@ class GameManger extends CollisionCallback
     hasNextObstacle(){}
 
     nextObstacle(){
-        
+
     }
 }
