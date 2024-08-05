@@ -1,3 +1,16 @@
+/**
+ * A class for storing obstacles, 
+ * managing the update, drawing and event of a group of obstacles.
+ * 
+ * Never add or remove obstacles directly！ 
+ * This can lead to unpredictable errors in the traversal.
+ * 
+ * You must use addObstacleCached() to add obstacle,
+ * This will assign it an appropriate time to add. (not in the traversal)
+ * 
+ * You must use obstacle.kill() to remove obstacle,
+ * This will assign it an appropriate time to remove. (not in the traversal)
+ */
 class Scenes
 {
     /**
@@ -17,9 +30,15 @@ class Scenes
 
         this.mCurrentHero = null
         this.mObstacles = new Array()
+        this.mCachedObstacles = new Array()
         this.mGameManger = new GameManger(this)
     }
 
+    /**
+     * Resize scenes, and adjust the position of obstacles in the scenes
+     * @param {number} width 
+     * @param {number} height 
+     */
     resize(width, height)
     {
         this.mWidth =  width
@@ -40,21 +59,28 @@ class Scenes
     }
 
     /**
-     * Creat new obstacle on the right side of the scenes
-     */
-    creatObstacle(){
-        let obstacle = this.mGameManger.nextObstacle()
-        obstacle.prepare(this.addObstacle)
-    }
-
-    /**
-     * 
+     * Add an obstacle to the scenes, 
+     * and reorders the obstacle array in order of priority.
+     * obstacles with lower priority will be placed earlier in the list, 
+     * obstacles earlier in the list will be drawn first
      * @param {Obstacle} obstacle 
      */
     addObstacle(obstacle){
         obstacle.mScenes = this
         this.mObstacles.push(obstacle)
+        this.mObstacles.sort((o1, o2) =>{
+            return o1.getPriority() - o2.getPriority()
+        })
         obstacle.onAddToScenes(this)
+    }
+
+    /**
+     * Delayed adding of an obstacle to the scenes, 
+     * This will assign it an appropriate time to add. (not in the traversal)
+     * @param {Obstacle} obstacle 
+     */
+    addObstacleCached(obstacle){
+        this.mCachedObstacles.push(obstacle)
     }
 
     /**
@@ -75,8 +101,13 @@ class Scenes
         return ret
     }
 
+    /**
+     * Clear all obstacles in the scenes
+     */
     clear(){
-       
+       this.mObstacles.splice(0, this.mObstacles.length)
+       this.mCachedObstacles.splice(0, this.mCachedObstacles.length)
+       this.mCurrentHero = null
     }
 
     /**
@@ -127,9 +158,9 @@ class Scenes
             }
         }
 
-        // Creat new obstacle on the right side of the scenes
-        if(this.mGameManger.hasNextObstacle()){
-            this.addObstacle(this.mGameManger.nextObstacle())
+        // Add all cached obstacle to the scenes
+        for(let obstacle of this.mCachedObstacles){
+            this.addObstacle(obstacle)
         }
     }
 
@@ -144,7 +175,7 @@ class Scenes
             this.drawCoverImage(context, this.mBackgroundImage, this.mScroll, 0, this.mWidth)
         }
         
-        // Draw bstacles in the scenes
+        // Draw obstacles in the scenes
         // Only obstacles that are drawn in the visual area
         // because some obstacles may exceed the scenes at resize
         for(let obstacle of this.mObstacles){
@@ -218,9 +249,8 @@ class GameManger
 
     }
 
-    hasNextObstacle(){}
-
-    nextObstacle(){
+    /** Creat new obstacle on the right side of the scenes */
+    creatObstacleIfhasNext(){
 
     }
 }
