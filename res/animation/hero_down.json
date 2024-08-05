@@ -1,0 +1,7 @@
+{
+    "imagePath": "hero_down.png",
+    "frameBounds": [
+        [0, 0, 124, 100],
+        [124, 0, 274, 81]
+    ]
+}

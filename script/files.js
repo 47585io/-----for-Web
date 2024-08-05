@@ -17,6 +17,9 @@ class Res
         class animation
         {
             static hero_run = "hero_run.json"
+            static hero_jump = "hero_jump.json"
+            static hero_down = "hero_down.json"
+            static lion_run = "lion_run.json"
         }
 
         this.pictures = pictures

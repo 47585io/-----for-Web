@@ -4,10 +4,10 @@ class Scenes
      * Create a specified size scenes
      * @param {number} width  scenes width
      * @param {number} height scenes height
+     * @param {number} groudY groud position
      */
     constructor(width, height, groudY)
     {
-        /** @type {CanvasImageSource} */
         this.mBackgroundImage = null
         this.mWidth = width
         this.mHeight = height
@@ -15,9 +15,7 @@ class Scenes
         this.mGravity = 5
         this.mScroll = 0
 
-        // can not， must ...
         this.mCurrentHero = null
-        /** @type {Array<Obstacle>} */
         this.mObstacles = new Array()
         this.mGameManger = new GameManger(this)
     }
@@ -32,10 +30,12 @@ class Scenes
         // offset obstacles in the scenes
         // so that they remain the same relative to the position of the hero
         if(this.mCurrentHero !== null){
-            let middle = mWidth >> 1
+            let middle = width >> 1
             let bounds = this.mCurrentHero.mBounds
-            bounds.left = middle - (bounds.width() >> 1)
-            bounds.bottom = this.mGroundY
+            let dx = middle - (bounds.width() >> 1) - bounds.left
+            for(let obstacle of this.mObstacles){
+                obstacle.mBounds.offset(dx, 0)
+            }
         }
     }
 
@@ -47,9 +47,14 @@ class Scenes
         obstacle.prepare(this.addObstacle)
     }
 
+    /**
+     * 
+     * @param {Obstacle} obstacle 
+     */
     addObstacle(obstacle){
         obstacle.mScenes = this
         this.mObstacles.push(obstacle)
+        obstacle.onAddToScenes(this)
     }
 
     /**
@@ -123,6 +128,9 @@ class Scenes
         }
 
         // Creat new obstacle on the right side of the scenes
+        if(this.mGameManger.hasNextObstacle()){
+            this.addObstacle(this.mGameManger.nextObstacle())
+        }
     }
 
     /**
@@ -132,7 +140,7 @@ class Scenes
     draw(context)
     {
         // Draw background image of the scenes
-        if(this.mBackgroundImage != null){
+        if(this.mBackgroundImage !== null){
             this.drawCoverImage(context, this.mBackgroundImage, this.mScroll, 0, this.mWidth)
         }
         
@@ -175,15 +183,19 @@ class Scenes
         }
     }
 
+    registerEventListener(){
+
+    }
+
     dispatchEvent(event){
 
     }
 }
 
-class GameManger extends CollisionCallback
+class GameManger 
 {
-    constructor(scenes){
-        super()
+    constructor(scenes)
+    {
         this.mScenes = scenes
 
         FileUtils.loadImage(R.pictures.background)
@@ -194,19 +206,13 @@ class GameManger extends CollisionCallback
         
         let hero = new Hero()
         hero.prepare(obstacle => {
-            
+            scenes.addObstacle(obstacle)
+            scenes.mCurrentHero = obstacle
+            scenes.resize(scenes.mWidth, scenes.mHeight)
         })
     }
 
     onCollision(o1, o2){}
-
-    stop(){
-
-    }
-
-    resume(){
-        
-    }
 
     exit(){
 

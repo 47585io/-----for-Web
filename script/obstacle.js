@@ -2,6 +2,7 @@ class Obstacle
 { 
     static ACTIVE_SHIFT = 31
     static COLLISION_SHIFT = 30
+    static OBSTACLE_PRIORITY = 255;
 
     constructor(){
         this.mBounds = new Rect()
@@ -19,6 +20,12 @@ class Obstacle
      *      it is used to notify the scenes to add you to the scenes
      */
     prepare(finish){}
+
+    /**
+     * The method of callback on you added to the scenes
+     * @param {Scenes} scenes Scenes you are added to
+     */
+    onAddToScenes(scenes){}
 
     /**
      * switch mActiveAnimation to animation and start animation
@@ -41,6 +48,12 @@ class Obstacle
     canCollision(){
         return this.isActive() && 
             (this.mPrivateFlags >> Obstacle.COLLISION_SHIFT & 1) == 0
+    }
+    setPriority(priority){
+        this.mPrivateFlags |= (priority & Obstacle.OBSTACLE_PRIORITY)
+    }
+    getPriority(){
+        return this.mPrivateFlags & Obstacle.OBSTACLE_PRIORITY
     }
 
     /**
@@ -98,13 +111,33 @@ class Hero extends Obstacle
 
     prepare(finish)
     {
+        let prepareCount = 0
         FileUtils.loadAnimation(R.animation.hero_run)
             .then(run => {
                 this.mAnimations[Hero.STATE_RUN] = new FrameAnimation(run)
                 this.switchState(Hero.STATE_RUN)
+                this.mActiveAnimation.mAnimationListener = new RepeatAnimationListener()
                 this.mBounds.set(this.mActiveAnimation.getCurrentImageBounds())
-                finish(this)
+                prepareCount++;
+                if(prepareCount === this.mAnimations.length)
+                    finish(this)
                 return run
+            })
+        FileUtils.loadAnimation(R.animation.hero_jump)
+            .then(jump => {
+                this.mAnimations[Hero.STATE_JUMP] = new FrameAnimation(jump)
+                prepareCount++;
+                if(prepareCount === this.mAnimations.length)
+                    finish(this)
+                return jump
+            })
+        FileUtils.loadAnimation(R.animation.hero_down)
+            .then(down => {
+                this.mAnimations[Hero.STATE_DOWN] = new FrameAnimation(down)
+                prepareCount++;
+                if(prepareCount === this.mAnimations.length)
+                    finish(this)
+                return down
             })
     }
 
