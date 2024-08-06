@@ -181,6 +181,7 @@ class Scenes
         for(let obstacle of this.mCachedObstacles){
             this.addObstacle(obstacle)
         }
+        this.mCachedObstacles.splice(0, this.mCachedObstacles.length)
     }
 
     /**
@@ -273,11 +274,16 @@ class GameManger
         })
     }
 
-    onCollision(o1, o2){
-        if(o2 instanceof Lion){
-            o2.onCollision(o1)
+    onCollision(hero, other)
+    {
+        // Lion and Tortoise can only collide once
+        if(other instanceof Lion || other instanceof Tortoise){
+            other.onCollision(hero)
+            other.setCanCollision(false)
         }
-        
+        else if(o2 instanceof Pillar){
+            other.onCollision(hero)
+        }
     }
 
     handleEvent(event){

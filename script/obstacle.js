@@ -226,21 +226,60 @@ class Lion extends Obstacle
                 let animation = new FrameAnimation(run)
                 animation.setAnimationListener(new RepeatAnimationListener())
                 this.startAnimation(animation)
+                this.mBounds.set(this.mActiveAnimation.getCurrentImageBounds())
                 finish(this)
+                return run
             })
+    }
+
+    update(){
+        super.update()
+        this.mBounds.offset(-this.xSpeed, 0)
     }
 
     onCollision(other){
         if(other instanceof Hero){
             other.healthy -= this.attack
-            other.mBounds.offset(-this.xSpeed, 0)
+            other.mBounds.offset(-this.xSpeed * 10, 0)
         }
     }
 }
 
 class Tortoise extends Obstacle
 {
+    constructor(){
+        this.broken = false
+        this.attack = 1
+    }
 
+    prepare(finish)
+    {
+        class KillAnimationListener extends AnimationListener
+        {
+            constructor(tortoise){
+                super()
+                this.tortoise = tortoise
+            }
+            onAnimationEnd(animation){
+                this.tortoise.kill()
+            }
+        }
+    }
+
+    update(){
+        if(this.broken) super.update()
+    }
+
+    onCollision(other)
+    {
+        if(other instanceof Hero){
+            if(other.mState === Hero.STATE_JUMP && other.ySpeed === 0){
+                this.broken = true
+            }else if(other.mState !== Hero.STATE_DOWN){
+                other.healthy -= this.attack
+            }
+        }
+    }
 }
 
 class Pillar extends Obstacle
@@ -255,5 +294,10 @@ class Pillar extends Obstacle
 
     update(){
         this.mBounds.offset(0, -this.mScenes.mGravity)
+    }
+
+    onCollision(other){
+        if(other instanceof Hero)
+            other.mBounds.offset(other.xSpeed)
     }
 }
