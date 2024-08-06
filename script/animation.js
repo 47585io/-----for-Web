@@ -7,7 +7,8 @@ class FrameAnimation
     constructor(frames){
         this.mAnimationFrames = frames
         this.mAnimationListener = null
-        this.mFrameDuartion = 5
+        this.frameDuartion = 5
+        this.animationDuartion = this.frameDuartion * this.getFrameCount()
         this.delta = 0
         this.currentIndex = 0
     }
@@ -19,18 +20,29 @@ class FrameAnimation
             this.mAnimationListener.onAnimationStart(this)
     }
 
-    update(){
-        let animationDuartion = this.mFrameDuartion * this.mAnimationFrames.mFrameBounds.length
-        let lastIndex = this.currentIndex
-        if(this.delta + 1 < animationDuartion){
-            this.delta++
-        }else if(this.mAnimationListener !== null){
+    update()
+    {
+        this.delta++;
+        if(this.delta === this.animationDuartion && this.mAnimationListener !== null)
             this.mAnimationListener.onAnimationEnd(this)
-        }
-        this.currentIndex = Math.floor(this.delta / this.mFrameDuartion)
+        
+        let frameCount = this.getFrameCount()
+        let lastIndex = this.currentIndex
+        this.currentIndex = Math.floor(this.delta / this.frameDuartion)
+        this.currentIndex = this.currentIndex < frameCount ? this.currentIndex : frameCount - 1
         if(lastIndex < this.currentIndex && this.mAnimationListener !== null)
             this.mAnimationListener.onAnimationUpdate(this)
+    }
 
+    setFrameDuartion(duartion){
+        this.frameDuartion = duartion
+        this.animationDuartion = this.frameDuartion * this.getFrameCount()
+    }
+    setAnimationDuartion(duartion){
+        this.animationDuartion = duartion
+    }
+    setAnimationListener(listener){
+        this.mAnimationListener = listener
     }
 
     getCurrentImage(){
@@ -38,6 +50,12 @@ class FrameAnimation
     }
     getCurrentImageBounds(){
         return this.mAnimationFrames.mFrameBounds[this.currentIndex]
+    }
+    getImageBoundsAt(index){
+        return this.mAnimationFrames.mFrameBounds[index]
+    }
+    getFrameCount(){
+        return this.mAnimationFrames.mFrameBounds.length
     }
 }
 

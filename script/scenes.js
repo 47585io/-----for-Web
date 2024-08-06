@@ -5,7 +5,7 @@
  * Never add or remove obstacles directly！ 
  * This can lead to unpredictable errors in the traversal.
  * 
- * You must use addObstacleCached() to add obstacle,
+ * You must use addObstacle(obstacle, true) to add obstacle,
  * This will assign it an appropriate time to add. (not in the traversal)
  * 
  * You must use obstacle.kill() to remove obstacle,
@@ -64,8 +64,17 @@ class Scenes
      * obstacles with lower priority will be placed earlier in the list, 
      * obstacles earlier in the list will be drawn first
      * @param {Obstacle} obstacle 
+     * @param {boolean} cached if cached === true
+     *      Delayed adding of an obstacle to the scenes, 
+     * T    his will assign it an appropriate time to add. (not in the traversal)
      */
-    addObstacle(obstacle){
+    addObstacle(obstacle, cached = false)
+    {
+        if(cached){
+            this.mCachedObstacles.push(obstacle)
+            return
+        }
+
         obstacle.mScenes = this
         this.mObstacles.push(obstacle)
         this.mObstacles.sort((o1, o2) =>{
@@ -75,12 +84,23 @@ class Scenes
     }
 
     /**
-     * Delayed adding of an obstacle to the scenes, 
-     * This will assign it an appropriate time to add. (not in the traversal)
-     * @param {Obstacle} obstacle 
+     * Remove elements from the specified position in the array
+     * Renove an element in an ordered array will not mess up the order of the array
+     * @private
+     * @param {number} index 
      */
-    addObstacleCached(obstacle){
-        this.mCachedObstacles.push(obstacle)
+    removeObstacleAt(index)
+    {
+        let obstacle = this.mObstacles[index]
+        this.mObstacles.splice(index, 1)
+        obstacle.mScenes = null
+        obstacle.onRemoveFromScenes(this)
+
+        if(obstacle === this.mCurrentHero){
+            // if hero removed, exit game
+            this.mCurrentHero = null
+            this.mGameManger.exit()
+        }
     }
 
     /**
@@ -122,11 +142,11 @@ class Scenes
         }
         // Follow hero
         let hero = this.mCurrentHero
-        this.mScroll += hero.mSpeed
+        this.mScroll += hero.xSpeed
 
         // Update the location of each obstacle
         for(let obstacle of this.mObstacles){
-            obstacle.mBounds.offset(-hero.mSpeed, this.mGravity)
+            obstacle.mBounds.offset(-hero.xSpeed, this.mGravity)
             obstacle.update()
         }
 
@@ -151,13 +171,12 @@ class Scenes
         for(let i = 0; i < this.mObstacles.length; ++i){
             let obstacle = this.mObstacles[i]
             if(!obstacle.isActive() || obstacle.mBounds.right < 0){
-                this.mObstacles.splice(i--, 1)
-                // if hero dead, exit game
-                if(obstacle === hero)
-                    this.mGameManger.exit()
+                this.removeObstacleAt(i--)
             }
         }
 
+        // Creat new obstacle on the right side of the scenes 
+        this.mGameManger.creatObstacleIfhasNext()
         // Add all cached obstacle to the scenes
         for(let obstacle of this.mCachedObstacles){
             this.addObstacle(obstacle)
@@ -214,20 +233,31 @@ class Scenes
         }
     }
 
-    registerEventListener(){
-
-    }
-
-    dispatchEvent(event){
-
+    dispatchEvent(event)
+    {
+        if(this.mCurrentHero !== null && this.mCurrentHero.handleEvent(event)){
+            return
+        }
     }
 }
 
 class GameManger 
 {
+    static MIN_CREAT_TIME = 180
+    static MAX_CREAT_TIME = 300
+
+    static OBSTACLE_KIND_COUNT = 1
+    static OBSTACLE_KIND = {
+        LION: 0, 
+        PILLAR: 1,
+        TORTOISE: 2, 
+    }
+
     constructor(scenes)
     {
         this.mScenes = scenes
+        this.timer = 0
+        this.nextTime = this.randInt(GameManger.MIN_CREAT_TIME, GameManger.MAX_CREAT_TIME)
 
         FileUtils.loadImage(R.pictures.background)
             .then(res => {
@@ -243,14 +273,59 @@ class GameManger
         })
     }
 
-    onCollision(o1, o2){}
+    onCollision(o1, o2){
+        if(o2 instanceof Lion){
+            o2.onCollision(o1)
+        }
+        
+    }
+
+    handleEvent(event){
+
+    }
 
     exit(){
 
     }
 
-    /** Creat new obstacle on the right side of the scenes */
     creatObstacleIfhasNext(){
+        this.timer++
+        if(this.timer === this.nextTime){
+            this.creatObstacle()
+            this.timer = 0
+            this.nextTime = this.randInt(GameManger.MIN_CREAT_TIME, GameManger.MAX_CREAT_TIME)
+        }
+    }
 
+    /** Creat new obstacle on the right side of the scenes */
+    creatObstacle()
+    {
+        let kind = this.randInt(0, GameManger.OBSTACLE_KIND_COUNT)
+        switch(kind)
+        {
+            case GameManger.OBSTACLE_KIND.LION:
+                let lion = new Lion()
+                lion.prepare(obstacle => {
+                    let dy = this.mScenes.mGroundY - obstacle.mBounds.height()
+                    obstacle.mBounds.offsetTo(this.mScenes.mWidth, dy)
+                    this.mScenes.addObstacle(obstacle)
+                })
+                break
+            case GameManger.OBSTACLE_KIND.PILLAR:
+                break
+            case GameManger.OBSTACLE_KIND.TORTOISE:
+                break
+        }
+    }
+
+    /**
+     * Randomly generate integers within the specified range
+     * @param {number} min range start
+     * @param {number} max range end
+     * @returns {number} Returns a random integer between (min, max),
+     *                   include min, but not include max
+     */
+    randInt(min, max){
+        return Math.floor(Math.random() * (max - min)) + min;
     }
 }

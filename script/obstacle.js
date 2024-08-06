@@ -28,6 +28,12 @@ class Obstacle
     onAddToScenes(scenes){}
 
     /**
+     * The method of callback on you remove from the scenes
+     * @param {Scenes} scenes Scenes you are remove from
+     */
+    onRemoveFromScenes(scenes){}
+
+    /**
      * switch mActiveAnimation to animation and start animation
      * @param {FrameAnimation} animation 
      */
@@ -42,8 +48,11 @@ class Obstacle
     isActive(){
         return (this.mPrivateFlags >> Obstacle.ACTIVE_SHIFT & 1) == 0
     }
-    setCantCollision(){
-        this.mPrivateFlags |= (1 << Obstacle.COLLISION_SHIFT)
+    setCanCollision(can){
+        if(can)
+            this.mPrivateFlags &= ~(1 << Obstacle.COLLISION_SHIFT)
+        else
+            this.mPrivateFlags |= (1 << Obstacle.COLLISION_SHIFT)
     }
     canCollision(){
         return this.isActive() && 
@@ -59,9 +68,17 @@ class Obstacle
     /**
      * The method of callback before draw, update your state
      */
-    update(){
-        if(this.mActiveAnimation !== null)
+    update()
+    {
+        // set the size of the target rectangle with the size of the source rectangle
+        // default is to use the bottom and left
+        if(this.mActiveAnimation !== null){
             this.mActiveAnimation.update()
+            let srcBounds = this.mActiveAnimation.getCurrentImageBounds()
+            let dstBounds = this.mBounds
+            dstBounds.right = dstBounds.left + srcBounds.width()
+            dstBounds.top = dstBounds.bottom - srcBounds.height()
+        }
     }
 
     /** 
@@ -97,27 +114,35 @@ class Obstacle
 
 class Hero extends Obstacle
 {
-    static JUMP_HEIGHT = 100
+    static JUMP_HEIGHT = 150
     static STATE_RUN = 0
     static STATE_JUMP = 1
     static STATE_DOWN = 2
 
     constructor(){
         super()
-        this.mSpeed = 5
+        this.xSpeed = 5
+        this.ySpeed = 0
+        this.jumpStart = 0
+        this.healthy = 10
         this.mState = Hero.STATE_RUN
         this.mAnimations = new Array(3)
     }
 
     prepare(finish)
     {
+        // Arrow functions do not have their own scope, 
+        // function and class have their own scope
         let prepareCount = 0
         FileUtils.loadAnimation(R.animation.hero_run)
             .then(run => {
-                this.mAnimations[Hero.STATE_RUN] = new FrameAnimation(run)
+                let animation = new FrameAnimation(run)
+                animation.mAnimationListener = new RepeatAnimationListener()
+                this.mAnimations[Hero.STATE_RUN] = animation
                 this.switchState(Hero.STATE_RUN)
-                this.mActiveAnimation.mAnimationListener = new RepeatAnimationListener()
                 this.mBounds.set(this.mActiveAnimation.getCurrentImageBounds())
+                // Each task completes, prepareCount++
+                // When all tasks are completed, call finish
                 prepareCount++;
                 if(prepareCount === this.mAnimations.length)
                     finish(this)
@@ -125,7 +150,9 @@ class Hero extends Obstacle
             })
         FileUtils.loadAnimation(R.animation.hero_jump)
             .then(jump => {
-                this.mAnimations[Hero.STATE_JUMP] = new FrameAnimation(jump)
+                let animation = new FrameAnimation(jump)
+                animation.mAnimationListener = new SwitchAnimationListener(this, Hero.STATE_RUN)
+                this.mAnimations[Hero.STATE_JUMP] = animation
                 prepareCount++;
                 if(prepareCount === this.mAnimations.length)
                     finish(this)
@@ -133,12 +160,30 @@ class Hero extends Obstacle
             })
         FileUtils.loadAnimation(R.animation.hero_down)
             .then(down => {
-                this.mAnimations[Hero.STATE_DOWN] = new FrameAnimation(down)
+                let animation = new FrameAnimation(down)
+                animation.setAnimationDuartion(60)
+                animation.mAnimationListener = new SwitchAnimationListener(this, Hero.STATE_RUN)
+                this.mAnimations[Hero.STATE_DOWN] = animation
                 prepareCount++;
                 if(prepareCount === this.mAnimations.length)
                     finish(this)
                 return down
             })
+        /**
+         * default, need to be defined before using the class, 
+         * but execute loadAnimation callback has a delay, So class is defined first
+         */
+        class SwitchAnimationListener extends AnimationListener
+        {
+            constructor(hero, state){
+                super()
+                this.hero = hero
+                this.state = state
+            }
+            onAnimationEnd(animation){
+                this.hero.switchState(this.state)
+            }
+        }
     }
 
     switchState(state){
@@ -148,16 +193,67 @@ class Hero extends Obstacle
 
     update(){
         super.update()
-        this.mBounds.offset(this.mSpeed, 0)
-        if(this.mActiveAnimation === null)
-            return
-        let srcBounds = this.mActiveAnimation.getCurrentImageBounds()
-        let dstBounds = this.mBounds
-        dstBounds.right = dstBounds.left + srcBounds.width()
-        dstBounds.top = dstBounds.bottom - srcBounds.height()
+        let jumpHeight = this.jumpStart - this.mBounds.bottom
+        if(this.mState === Hero.STATE_JUMP && jumpHeight >= Hero.JUMP_HEIGHT){
+            this.ySpeed = 0
+        }
+        this.mBounds.offset(this.xSpeed, this.ySpeed)
     }
 
     handleEvent(event){
-       
+        if(event.type === "click" && this.mState === Hero.STATE_RUN){
+            this.ySpeed = -(this.mScenes.mGravity * 2)
+            this.jumpStart = this.mBounds.bottom
+            this.switchState(Hero.STATE_JUMP)
+        }
+        else if(event.type === "contextmenu" && this.mState === Hero.STATE_RUN){
+            this.switchState(Hero.STATE_DOWN)
+        }
+    }
+}
+
+class Lion extends Obstacle
+{
+    constructor(){
+        super()
+        this.xSpeed = 5
+        this.attack = 1
+    }
+
+    prepare(finish){
+        FileUtils.loadAnimation(R.animation.lion_run)
+            .then(run => {
+                let animation = new FrameAnimation(run)
+                animation.setAnimationListener(new RepeatAnimationListener())
+                this.startAnimation(animation)
+                finish(this)
+            })
+    }
+
+    onCollision(other){
+        if(other instanceof Hero){
+            other.healthy -= this.attack
+            other.mBounds.offset(-this.xSpeed, 0)
+        }
+    }
+}
+
+class Tortoise extends Obstacle
+{
+
+}
+
+class Pillar extends Obstacle
+{
+    constructor(){
+        super()
+    }
+
+    prepare(finish){
+        FileUtils.loadAnimation()
+    }
+
+    update(){
+        this.mBounds.offset(0, -this.mScenes.mGravity)
     }
 }
