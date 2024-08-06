@@ -2,7 +2,7 @@ class Res
 {
     static pictures_directory = "../res/pictures/"
     static animation_directory = "../res/animation/"
-
+    
     constructor()
     {
         class pictures

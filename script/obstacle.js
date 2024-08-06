@@ -1,3 +1,7 @@
+/**
+ * The Base Class of all obstacles, 
+ * All obstacles added to the scenes should be extends this class
+ */
 class Obstacle
 { 
     static ACTIVE_SHIFT = 31
@@ -42,11 +46,34 @@ class Obstacle
         this.mActiveAnimation.start()
     }
 
+    /**
+     * load Animation at first time for the obstacle
+     * @param {string} path load animation path (call to FileUtils.loadAnimation(path))
+     * @param {(animation: FrameAnimation) => void} configAnimation
+     *      the callback are used to animation or perform other operations,
+     *      it is called at the end of the function without worrying about any dependencies
+     * @param {boolean} setActive if true, startAnimation to it,
+     *      and set mBounds to the size of the first frame of the animation
+     */
+    loadAnimation(path, configAnimation, setActive = true)
+    {
+        FileUtils.loadAnimation(path)
+            .then(frames => {
+                let animation = new FrameAnimation(frames)
+                if(setActive){
+                    this.startAnimation(animation)
+                    this.mBounds.set(this.mActiveAnimation.getCurrentImageBounds())
+                }
+                configAnimation(animation)
+                return frames
+            })
+    }
+
     kill(){
         this.mPrivateFlags |= (1 << Obstacle.ACTIVE_SHIFT)
     }
     isActive(){
-        return (this.mPrivateFlags >> Obstacle.ACTIVE_SHIFT & 1) == 0
+        return (this.mPrivateFlags >> Obstacle.ACTIVE_SHIFT & 1) === 0
     }
     setCanCollision(can){
         if(can)
@@ -56,7 +83,7 @@ class Obstacle
     }
     canCollision(){
         return this.isActive() && 
-            (this.mPrivateFlags >> Obstacle.COLLISION_SHIFT & 1) == 0
+            (this.mPrivateFlags >> Obstacle.COLLISION_SHIFT & 1) === 0
     }
     setPriority(priority){
         this.mPrivateFlags |= (priority & Obstacle.OBSTACLE_PRIORITY)
@@ -134,41 +161,34 @@ class Hero extends Obstacle
         // Arrow functions do not have their own scope, 
         // function and class have their own scope
         let prepareCount = 0
-        FileUtils.loadAnimation(R.animation.hero_run)
-            .then(run => {
-                let animation = new FrameAnimation(run)
-                animation.mAnimationListener = new RepeatAnimationListener()
-                this.mAnimations[Hero.STATE_RUN] = animation
-                this.switchState(Hero.STATE_RUN)
-                this.mBounds.set(this.mActiveAnimation.getCurrentImageBounds())
-                // Each task completes, prepareCount++
-                // When all tasks are completed, call finish
-                prepareCount++;
-                if(prepareCount === this.mAnimations.length)
-                    finish(this)
-                return run
-            })
-        FileUtils.loadAnimation(R.animation.hero_jump)
-            .then(jump => {
-                let animation = new FrameAnimation(jump)
-                animation.mAnimationListener = new SwitchAnimationListener(this, Hero.STATE_RUN)
-                this.mAnimations[Hero.STATE_JUMP] = animation
-                prepareCount++;
-                if(prepareCount === this.mAnimations.length)
-                    finish(this)
-                return jump
-            })
-        FileUtils.loadAnimation(R.animation.hero_down)
-            .then(down => {
-                let animation = new FrameAnimation(down)
-                animation.setAnimationDuartion(60)
-                animation.mAnimationListener = new SwitchAnimationListener(this, Hero.STATE_RUN)
-                this.mAnimations[Hero.STATE_DOWN] = animation
-                prepareCount++;
-                if(prepareCount === this.mAnimations.length)
-                    finish(this)
-                return down
-            })
+
+        this.loadAnimation(R.animation.hero_run, animation => {
+            animation.mAnimationListener = new RepeatAnimationListener()
+            this.mAnimations[Hero.STATE_RUN] = animation
+            // Each task completes, prepareCount++
+            // When all tasks are completed, call finish
+            prepareCount++;
+            if(prepareCount === this.mAnimations.length)
+                finish(this)
+        })
+        
+        loadAnimation(R.animation.hero_jump, animation => {
+            animation.mAnimationListener = new SwitchAnimationListener(this, Hero.STATE_RUN)
+            this.mAnimations[Hero.STATE_JUMP] = animation
+            prepareCount++;
+            if(prepareCount === this.mAnimations.length)
+                finish(this)
+        }, false)
+
+        loadAnimation(R.animation.hero_down, animation => {
+            animation.setAnimationDuartion(60)
+            animation.mAnimationListener = new SwitchAnimationListener(this, Hero.STATE_RUN)
+            this.mAnimations[Hero.STATE_DOWN] = animation
+            prepareCount++;
+            if(prepareCount === this.mAnimations.length)
+                finish(this)
+        }, false)
+        
         /**
          * default, need to be defined before using the class, 
          * but execute loadAnimation callback has a delay, So class is defined first
