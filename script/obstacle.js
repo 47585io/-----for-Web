@@ -311,7 +311,7 @@ class Pillar extends Obstacle
 {
     prepare(finish){
         this.loadAnimation(Res.animation.pillar_style, animation => {
-            animation.currentIndex = 2
+            animation.currentIndex = Math.floor(Math.random() * animation.getFrameCount())
             this.mBounds.set(animation.getCurrentFrame().bounds)
             finish(this)
         })

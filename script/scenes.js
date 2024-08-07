@@ -306,7 +306,7 @@ class GameManger
     /** Creat new obstacle on the right side of the scenes */
     creatObstacle()
     {
-        let kind = this.randInt(0, GameManger.OBSTACLE_KIND_COUNT)
+        let kind = 1//this.randInt(0, GameManger.OBSTACLE_KIND_COUNT)
         let obstacle = new GameManger.OBSTACLE_KIND[kind]
         obstacle.prepare(obstacle => {
             if(obstacle instanceof Lion || obstacle instanceof Tortoise){
