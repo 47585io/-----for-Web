@@ -12,6 +12,7 @@ class Res
             static hero_jump = "hero_jump.png"
             static hero_down = "hero_down.png"
             static lion_run = "lion_run.png"
+            static pillar_style = "pillar_style.png"
         }
 
         class animation
@@ -20,6 +21,7 @@ class Res
             static hero_jump = "hero_jump.json"
             static hero_down = "hero_down.json"
             static lion_run = "lion_run.json"
+            static pillar_style = "pillar_style.json"
         }
 
         this.pictures = pictures

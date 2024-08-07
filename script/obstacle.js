@@ -55,7 +55,7 @@ class Obstacle
      * @param {boolean} setActive if true, startAnimation to it,
      *      and set mBounds to the size of the first frame of the animation
      */
-    loadAnimation(path, configAnimation, setActive = true)
+    loadAnimation(path, configAnimation = undefined, setActive = true)
     {
         FileUtils.loadAnimation(path)
             .then(frames => {
@@ -64,7 +64,8 @@ class Obstacle
                     this.startAnimation(animation)
                     this.mBounds.set(this.mActiveAnimation.getCurrentFrame().bounds)
                 }
-                configAnimation(animation)
+                if(configAnimation !== undefined)
+                    configAnimation(animation)
                 return frames
             })
     }
@@ -137,7 +138,9 @@ class Obstacle
      * @param {Event} event rceived event
      * @returns {boolean} if consume event, return ture
      */
-    handleEvent(event){}
+    handleEvent(event){
+        return false
+    }
 }
 
 class Hero extends Obstacle
@@ -301,7 +304,11 @@ class Tortoise extends Obstacle
 class Pillar extends Obstacle
 {
     prepare(finish){
-        FileUtils.loadAnimation()
+        this.loadAnimation(R.animation.pillar_style, animation => {
+            animation.currentIndex = 2
+            this.mBounds.set(animation.getCurrentFrame().bounds)
+            finish(this)
+        })
     }
 
     update(){
@@ -310,6 +317,6 @@ class Pillar extends Obstacle
 
     onCollision(other){
         if(other instanceof Hero)
-            other.mBounds.offset(other.xSpeed)
+            other.mBounds.offset(-other.xSpeed, 0)
     }
 }

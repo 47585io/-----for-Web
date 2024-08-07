@@ -247,12 +247,12 @@ class GameManger
     static MIN_CREAT_TIME = 180
     static MAX_CREAT_TIME = 300
 
-    static OBSTACLE_KIND_COUNT = 1
-    static OBSTACLE_KIND = {
-        LION: 0, 
-        PILLAR: 1,
-        TORTOISE: 2, 
-    }
+    static OBSTACLE_KIND_COUNT = 2
+    static OBSTACLE_KIND = [
+        Lion, 
+        Pillar, 
+        Tortoise
+    ]
 
     constructor(scenes)
     {
@@ -276,12 +276,12 @@ class GameManger
 
     onCollision(hero, other)
     {
-        // Lion and Tortoise can only collide once
+        // Lion and Tortoise can only collide once with Hero
         if(other instanceof Lion || other instanceof Tortoise){
             other.onCollision(hero)
             other.setCanCollision(false)
         }
-        else if(o2 instanceof Pillar){
+        else if(other instanceof Pillar){
             other.onCollision(hero)
         }
     }
@@ -306,22 +306,18 @@ class GameManger
     /** Creat new obstacle on the right side of the scenes */
     creatObstacle()
     {
-        let kind = this.randInt(0, GameManger.OBSTACLE_KIND_COUNT)
-        switch(kind)
-        {
-            case GameManger.OBSTACLE_KIND.LION:
-                let lion = new Lion()
-                lion.prepare(obstacle => {
-                    let dy = this.mScenes.mGroundY - obstacle.mBounds.height()
-                    obstacle.mBounds.offsetTo(this.mScenes.mWidth, dy)
-                    this.mScenes.addObstacle(obstacle)
-                })
-                break
-            case GameManger.OBSTACLE_KIND.PILLAR:
-                break
-            case GameManger.OBSTACLE_KIND.TORTOISE:
-                break
-        }
+        let kind = this.randInt(1, GameManger.OBSTACLE_KIND_COUNT)
+        let obstacle = new GameManger.OBSTACLE_KIND[kind]
+        obstacle.prepare(obstacle => {
+            if(obstacle instanceof Lion || obstacle instanceof Tortoise){
+                let dy = this.mScenes.mGroundY - obstacle.mBounds.height()
+                obstacle.mBounds.offsetTo(this.mScenes.mWidth, dy)
+            }
+            else if(obstacle instanceof Pillar){
+                obstacle.mBounds.offsetTo(this.mScenes.mWidth, 0)
+            }
+            this.mScenes.addObstacle(obstacle)
+        })
     }
 
     /**
