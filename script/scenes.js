@@ -247,7 +247,7 @@ class GameManger
     static MIN_CREAT_TIME = 180
     static MAX_CREAT_TIME = 300
 
-    static OBSTACLE_KIND_COUNT = 2
+    static OBSTACLE_KIND_COUNT = 3
     static OBSTACLE_KIND = [
         Lion, 
         Pillar, 
@@ -260,7 +260,7 @@ class GameManger
         this.timer = 0
         this.nextTime = this.randInt(GameManger.MIN_CREAT_TIME, GameManger.MAX_CREAT_TIME)
 
-        FileUtils.loadImage(R.pictures.background)
+        FileUtils.loadImage(Res.pictures.background)
             .then(res => {
                 scenes.mBackgroundImage = res
                 return res

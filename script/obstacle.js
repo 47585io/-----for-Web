@@ -166,7 +166,7 @@ class Hero extends Obstacle
         // function and class have their own scope
         let prepareCount = 0
 
-        this.loadAnimation(R.animation.hero_run, animation => {
+        this.loadAnimation(Res.animation.hero_run, animation => {
             animation.mAnimationListener = new RepeatAnimationListener()
             this.mAnimations[Hero.STATE_RUN] = animation
             // Each task completes, prepareCount++
@@ -176,7 +176,7 @@ class Hero extends Obstacle
                 finish(this)
         })
         
-        this.loadAnimation(R.animation.hero_jump, animation => {
+        this.loadAnimation(Res.animation.hero_jump, animation => {
             animation.mAnimationListener = new SwitchAnimationListener(this, Hero.STATE_RUN)
             this.mAnimations[Hero.STATE_JUMP] = animation
             prepareCount++;
@@ -184,7 +184,7 @@ class Hero extends Obstacle
                 finish(this)
         }, false)
 
-        this.loadAnimation(R.animation.hero_down, animation => {
+        this.loadAnimation(Res.animation.hero_down, animation => {
             animation.setAnimationDuartion(60)
             animation.mAnimationListener = new SwitchAnimationListener(this, Hero.STATE_RUN)
             this.mAnimations[Hero.STATE_DOWN] = animation
@@ -245,7 +245,7 @@ class Lion extends Obstacle
     }
 
     prepare(finish){
-        this.loadAnimation(R.animation.lion_run, animation => {
+        this.loadAnimation(Res.animation.lion_run, animation => {
             animation.setAnimationListener(new RepeatAnimationListener())
             finish(this)
         }) 
@@ -267,20 +267,26 @@ class Lion extends Obstacle
 class Tortoise extends Obstacle
 {
     constructor(){
+        super()
         this.broken = false
         this.attack = 1
     }
 
     prepare(finish)
     {
+        this.loadAnimation(Res.animation.tortoise_dead, animation => {
+            animation.setAnimationListener(new KillAnimationListener(this))
+            finish(this)
+        })
+
         class KillAnimationListener extends AnimationListener
         {
-            constructor(tortoise){
+            constructor(obstacle){
                 super()
-                this.tortoise = tortoise
+                this.obstacle = obstacle
             }
             onAnimationEnd(animation){
-                this.tortoise.kill()
+                this.obstacle.kill()
             }
         }
     }
@@ -304,7 +310,7 @@ class Tortoise extends Obstacle
 class Pillar extends Obstacle
 {
     prepare(finish){
-        this.loadAnimation(R.animation.pillar_style, animation => {
+        this.loadAnimation(Res.animation.pillar_style, animation => {
             animation.currentIndex = 2
             this.mBounds.set(animation.getCurrentFrame().bounds)
             finish(this)

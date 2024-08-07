@@ -3,33 +3,27 @@ class Res
     static pictures_directory = "../res/pictures/"
     static animation_directory = "../res/animation/"
     
-    constructor()
+    static pictures = class
     {
-        class pictures
-        {
-            static background = "background.png"
-            static hero_run = "hero_run.png"
-            static hero_jump = "hero_jump.png"
-            static hero_down = "hero_down.png"
-            static lion_run = "lion_run.png"
-            static pillar_style = "pillar_style.png"
-        }
-
-        class animation
-        {
-            static hero_run = "hero_run.json"
-            static hero_jump = "hero_jump.json"
-            static hero_down = "hero_down.json"
-            static lion_run = "lion_run.json"
-            static pillar_style = "pillar_style.json"
-        }
-
-        this.pictures = pictures
-        this.animation = animation
+        static background = "background.png"
+        static hero_run = "hero_run.png"
+        static hero_jump = "hero_jump.png"
+        static hero_down = "hero_down.png"
+        static lion_run = "lion_run.png"
+        static pillar_style = "pillar_style.png"
+        static tortoise_dead = "tortoise_dead.png"
+    }
+    
+    static animation = class
+    {
+        static hero_run = "hero_run.json"
+        static hero_jump = "hero_jump.json"
+        static hero_down = "hero_down.json"
+        static lion_run = "lion_run.json"
+        static pillar_style = "pillar_style.json"
+        static tortoise_dead = "tortoise_dead.json"
     }
 }
-
-var R = new Res()
 
 class FileUtils
 {
