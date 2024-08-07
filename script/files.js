@@ -27,7 +27,7 @@ class Res
 
 class FileUtils
 {
-    /** @type {Map<string, object>} */
+    /** @type {Map<string, object>} cached loaded files data */
     static mPathToData = new Map()
 
     /**
