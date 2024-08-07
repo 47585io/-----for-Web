@@ -98,7 +98,7 @@ class FileUtils
     /**
      * load animation file from animation directory
      * @param {string} path The path to the animation file relative animation directory
-     * @returns {Promise<AnimationFrames>}
+     * @returns {Promise<Array<Sprite>>}
      *      A Promise that resolves to a AnimationFrames, 
      *      Handle frames in then(), and must return frames for next promise 
      */
@@ -121,7 +121,7 @@ class FileUtils
         if(data instanceof Promise){
             return data
         }
-        else if(data instanceof AnimationFrames){
+        else if(data instanceof Array){
             return Promise.resolve(data)
         }
         return Promise.reject(new Error('Invalid data type for ' + path));
@@ -131,7 +131,7 @@ class FileUtils
      * load animation file from path in background thread
      * @private 
      * @param {string} path The path to the image file
-     * @returns {Promise<AnimationFrames>} A Promise that resolves to a AnimationFrames
+     * @returns {Promise<Array<Sprite>>} A Promise that resolves to animation frames
      */
     static newFramesPromise(path)
     {
@@ -145,12 +145,12 @@ class FileUtils
             .then(object => {
                 return this.loadImage(object.imagePath)
                     .then(image => {
-                        let frameBounds = new Array()
+                        let frames = new Array()
                         for(let bounds of object.frameBounds){
                             let rect = new Rect(bounds[0], bounds[1], bounds[2], bounds[3])
-                            frameBounds.push(rect)
+                            frames.push(new Sprite(image, rect))
                         }
-                        return new AnimationFrames(image, frameBounds)
+                        return frames
                     })
             })
             .catch(error => {

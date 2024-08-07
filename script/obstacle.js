@@ -62,7 +62,7 @@ class Obstacle
                 let animation = new FrameAnimation(frames)
                 if(setActive){
                     this.startAnimation(animation)
-                    this.mBounds.set(this.mActiveAnimation.getCurrentImageBounds())
+                    this.mBounds.set(this.mActiveAnimation.getCurrentFrame().bounds)
                 }
                 configAnimation(animation)
                 return frames
@@ -101,7 +101,7 @@ class Obstacle
         // default is to use the bottom and left
         if(this.mActiveAnimation !== null){
             this.mActiveAnimation.update()
-            let srcBounds = this.mActiveAnimation.getCurrentImageBounds()
+            let srcBounds = this.mActiveAnimation.getCurrentFrame().bounds
             let dstBounds = this.mBounds
             dstBounds.right = dstBounds.left + srcBounds.width()
             dstBounds.top = dstBounds.bottom - srcBounds.height()
@@ -117,8 +117,9 @@ class Obstacle
         // Draw the image of the current frame of
         // the mActiveAnimation in the location of mBounds
         if(this.mActiveAnimation !== null){
-            let image = this.mActiveAnimation.getCurrentImage()
-            let srcBounds = this.mActiveAnimation.getCurrentImageBounds()
+            let frame = this.mActiveAnimation.getCurrentFrame()
+            let image = frame.image
+            let srcBounds = frame.bounds
             let dstBounds = this.mBounds
             context.drawImage(image, srcBounds.left, srcBounds.top, srcBounds.width(), srcBounds.height(),
                 dstBounds.left, dstBounds.top, dstBounds.width(), dstBounds.height())
@@ -172,7 +173,7 @@ class Hero extends Obstacle
                 finish(this)
         })
         
-        loadAnimation(R.animation.hero_jump, animation => {
+        this.loadAnimation(R.animation.hero_jump, animation => {
             animation.mAnimationListener = new SwitchAnimationListener(this, Hero.STATE_RUN)
             this.mAnimations[Hero.STATE_JUMP] = animation
             prepareCount++;
@@ -180,7 +181,7 @@ class Hero extends Obstacle
                 finish(this)
         }, false)
 
-        loadAnimation(R.animation.hero_down, animation => {
+        this.loadAnimation(R.animation.hero_down, animation => {
             animation.setAnimationDuartion(60)
             animation.mAnimationListener = new SwitchAnimationListener(this, Hero.STATE_RUN)
             this.mAnimations[Hero.STATE_DOWN] = animation
@@ -241,15 +242,10 @@ class Lion extends Obstacle
     }
 
     prepare(finish){
-        FileUtils.loadAnimation(R.animation.lion_run)
-            .then(run => {
-                let animation = new FrameAnimation(run)
-                animation.setAnimationListener(new RepeatAnimationListener())
-                this.startAnimation(animation)
-                this.mBounds.set(this.mActiveAnimation.getCurrentImageBounds())
-                finish(this)
-                return run
-            })
+        this.loadAnimation(R.animation.lion_run, animation => {
+            animation.setAnimationListener(new RepeatAnimationListener())
+            finish(this)
+        }) 
     }
 
     update(){
@@ -304,10 +300,6 @@ class Tortoise extends Obstacle
 
 class Pillar extends Obstacle
 {
-    constructor(){
-        super()
-    }
-
     prepare(finish){
         FileUtils.loadAnimation()
     }

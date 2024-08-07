@@ -295,12 +295,12 @@ class GameManger
     }
 
     creatObstacleIfhasNext(){
-        this.timer++
         if(this.timer === this.nextTime){
             this.creatObstacle()
             this.timer = 0
             this.nextTime = this.randInt(GameManger.MIN_CREAT_TIME, GameManger.MAX_CREAT_TIME)
         }
+        this.timer++
     }
 
     /** Creat new obstacle on the right side of the scenes */
