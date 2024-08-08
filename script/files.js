@@ -102,7 +102,7 @@ class FileUtils
 
     /**
      * load music file from music directory
-     * @param {string} path The path to the music file relative music directory
+     * @param {string} relativePath The path to the music file relative music directory
      * @returns {Promise<AudioBufferSourceNode>}
      *      A Promise that resolves to a AudioBufferSourceNode,
      *      Handle music in then(), and must return music for next promise 
@@ -136,9 +136,9 @@ class FileUtils
      * @private
      * @param {string} path The path to the data file
      * @param {(path: string) => Promise} createData 
-     *      Callback function to create data, called only once
-     * @returns {Promise} A Promise that resolves to data
-     *      Handle data in then() and must return data for the next Promise
+     *      Callback function to create data, called only once on first load path
+     * @returns {Promise} A Promise that resolves to data.
+     *      If first load path, return new Promise, else return cached Promise
      */
     static loadCachedData(path, createData) 
     {
