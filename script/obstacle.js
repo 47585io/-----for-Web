@@ -266,15 +266,24 @@ class Lion extends Obstacle
 
 class Tortoise extends Obstacle
 {
+    static BROKEN_SHIFT = 29
+
     constructor(){
         super()
-        this.broken = false
         this.attack = 1
+    }
+
+    broken(){
+        this.mPrivateFlags |= (1 << Tortoise.BROKEN_SHIFT)
+    }
+    isBroken(){
+        return (this.mPrivateFlags >> Tortoise.BROKEN_SHIFT & 1) === 1
     }
 
     prepare(finish)
     {
         this.loadAnimation(Res.animation.tortoise_dead, animation => {
+            animation.setFrameDuartion(20)
             animation.setAnimationListener(new KillAnimationListener(this))
             finish(this)
         })
@@ -292,14 +301,14 @@ class Tortoise extends Obstacle
     }
 
     update(){
-        if(this.broken) super.update()
+        if(this.isBroken()) super.update()
     }
 
     onCollision(other)
     {
         if(other instanceof Hero){
-            if(other.mState === Hero.STATE_JUMP && other.ySpeed === 0){
-                this.broken = true
+            if(other.mState === Hero.STATE_JUMP && other.ySpeed >= 0){
+                this.broken()
             }else if(other.mState !== Hero.STATE_DOWN){
                 other.healthy -= this.attack
             }

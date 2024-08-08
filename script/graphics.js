@@ -161,13 +161,16 @@ class Rect extends Object
 
     /**
      * Returns true if the specified rectangle is inside or equal to this rectangle
-     * @description The function has 2 operations:
+     * @description The function has 3 operations:
+     * - contains(x: number, y: number): boolean (check rect whether contains point)
      * - contains(left: number, top: number, right: number, bottom: number): boolean
      * - contains(r: Rect): boolean
      * @returns {boolean} true if the specified rectangle is inside or equal to this rectangle
      */
     contains(){
-        if(arguments.length === 4 && typeof arguments[0] === "number" && typeof arguments[1] === "number" && typeof arguments[2] === "number" && typeof arguments[3] === "number"){
+        if(arguments.length === 2 && typeof arguments[0] === "number" && typeof arguments[1] === "number"){
+            return this.containsWithValues(arguments[0], arguments[1], arguments[0], arguments[1])
+        }else if(arguments.length === 4 && typeof arguments[0] === "number" && typeof arguments[1] === "number" && typeof arguments[2] === "number" && typeof arguments[3] === "number"){
             return this.containsWithValues(arguments[0], arguments[1], arguments[2], arguments[3])
         }else if(arguments.length === 1 && arguments[0] instanceof Rect){
             let r = arguments[0]
