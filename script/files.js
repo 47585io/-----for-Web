@@ -47,36 +47,8 @@ class FileUtils
      *      A Promise that resolves to a CanvasImageSource, 
      *      Handle image in then(), and must return image for next promise 
      */
-    static loadImage(path) 
-    {
-        path = Res.pictures_directory + path
-        let data = this.mPathToData.get(path)
-        
-        if(data === undefined){
-            // The path is first load
-            console.log("load image from " + path)
-            let loadPromise = this.newImagePromise(path)
-                .then(image => {
-                    // on image load, save it in the map
-                    this.mPathToData.set(path, image)
-                    return image //Return the image to handle the subsequent promise
-                })
-            // before the image loading completes, save "load promise" in the map
-            this.mPathToData.set(path, loadPromise)
-            return loadPromise
-        }
-
-        if(data instanceof Promise){
-            // the image is loading, return "load promise"
-            // onload, "load promise" will call each callback
-            return data
-        }
-        else if(data instanceof CanvasImageSource){
-            // the image is already loaded, return resolved Promise
-            return Promise.resolve(data)
-        }
-        // Handle any other unexpected cases
-        return Promise.reject(new Error('Invalid data type for ' + path));
+    static loadImage(path) {
+        return this.loadData(Res.pictures_directory + path, this.newImagePromise)
     }
 
     /**
@@ -90,14 +62,14 @@ class FileUtils
         return fetch(path)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`Failed to fetch image from ${path}`);
+                    throw new Error('Network response was not ok')
                 }
-                return response.blob();
+                return response.blob()
             })
             .then(blob => createImageBitmap(blob))
             .catch(error => {
-                console.error(`Error loading image from ${path}:`, error);
-                throw error; // rethrow the error to propagate it further
+                console.error(`Error loading image from ${path}:`, error)
+                throw error // rethrow the error to propagate it further
             });
     }
 
@@ -105,32 +77,11 @@ class FileUtils
      * load animation file from animation directory
      * @param {string} path The path to the animation file relative animation directory
      * @returns {Promise<Array<Sprite>>}
-     *      A Promise that resolves to a AnimationFrames, 
+     *      A Promise that resolves to animation frames, 
      *      Handle frames in then(), and must return frames for next promise 
      */
-    static loadAnimation(path)
-    {
-        path = Res.animation_directory + path
-        let data = this.mPathToData.get(path)
-
-        if(data === undefined){
-            console.log("load animation from " + path)
-            let loadPromise = this.newFramesPromise(path)
-                .then(frames => {
-                    this.mPathToData.set(path, frames)
-                    return frames
-                })
-            this.mPathToData.set(path, loadPromise)
-            return loadPromise
-        }
-
-        if(data instanceof Promise){
-            return data
-        }
-        else if(data instanceof Array){
-            return Promise.resolve(data)
-        }
-        return Promise.reject(new Error('Invalid data type for ' + path));
+    static loadAnimation(path) {
+        return this.loadData(Res.animation_directory + path, this.newFramesPromise)
     }
 
     /**
@@ -144,12 +95,12 @@ class FileUtils
         return fetch(path)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error('Network response was not ok')
                 }
                 return response.json()
             })
             .then(object => {
-                return this.loadImage(object.imagePath)
+                return FileUtils.loadImage(object.imagePath)
                     .then(image => {
                         let frames = new Array()
                         for(let bounds of object.frameBounds){
@@ -160,33 +111,70 @@ class FileUtils
                     })
             })
             .catch(error => {
-                console.error(`Error loading frames from ${path}:`, error);
-                throw error; // rethrow the error to propagate it further
+                console.error(`Error loading frames from ${path}:`, error)
+                throw error // rethrow the error to propagate it further
             });
     }
 
-    static loadMusic(path){
-        
+    /**
+     * load audio file from music directory
+     * @param {string} path The path to the music file relative music directory
+     * @returns {Promise<AudioBufferSourceNode>}
+     *      A Promise that resolves to a AudioBufferSourceNode,
+     *      Handle music in then(), and must return music for next promise 
+     */
+    static loadMusic(path) {
+        return this.loadData(Res.music_directory + path, this.newMusicPromise)
     }
 
     /**
      * load audio file from path in background thread
      * @private
      * @param {string} path The path to the audio file
-     * @returns {AudioBufferSourceNode} A Promise that resolves to a AudioBufferSourceNode
+     * @returns {Promise<AudioBufferSourceNode>} A Promise that resolves to a AudioBufferSourceNode
      */
     static newMusicPromise(path)
     {
         return fetch(path)
-            .then(response => response.arrayBuffer())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok')
+                }
+                return response.arrayBuffer()
+            })
             .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
             .then(audioBuffer => {
-                let source = audioContext.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(audioContext.destination);
+                let source = audioContext.createBufferSource()
+                source.buffer = audioBuffer
+                source.connect(audioContext.destination)
                 return source
             })
-            .catch(error => console.error('Fetch error:', error));
+            .catch(error => {
+                console.error(`Error loading music from ${path}:`, error)
+                throw error // rethrow the error to propagate it further
+            });
+    }
 
+    /**
+     * Load data and cache it using mPathToData map
+     * @private
+     * @param {string} path The path to the data file
+     * @param {(path: string) => Promise} createData Callback function to create data, called only once
+     * @returns {Promise} A Promise that resolves to data. Handle data in then() and must return data for the next Promise
+     */
+    static loadData(path, createData) 
+    {
+        let data = this.mPathToData.get(path)
+        if (data === undefined) {
+            // First time loading the path
+            console.log("Loading data from " + path)
+            // Save the "load promise" in the map
+            data = createData(path)
+            this.mPathToData.set(path, data)
+        }
+        // Return the "load promise"
+        // If the data is still loading, the registered callbacks in then() will be called on fulfillment
+        // If the data is already fulfilled, the callback passed to then() will be called immediately
+        return data
     }
 }
