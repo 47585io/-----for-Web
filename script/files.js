@@ -138,7 +138,7 @@ class FileUtils
      * @param {(path: string) => Promise} createData 
      *      Callback function to create data, called only once on first load path
      * @returns {Promise} A Promise that resolves to data.
-     *      If first load path, return new Promise, else return cached Promise
+     *      If on first load path, return new Promise, else return cached Promise
      */
     static loadCachedData(path, createData) 
     {
