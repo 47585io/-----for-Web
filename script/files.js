@@ -42,24 +42,15 @@ class FileUtils
 
     /**
      * load image file from pictures directory
-     * @param {string} path The path to the image file relative pictures directory
+     * @param {string} relativePath The path to the image file relative pictures directory
      * @returns {Promise<CanvasImageSource>} 
      *      A Promise that resolves to a CanvasImageSource, 
      *      Handle image in then(), and must return image for next promise 
      */
-    static loadImage(path) {
-        return this.loadData(Res.pictures_directory + path, this.newImagePromise)
-    }
-
-    /**
-     * load image file from path in background thread
-     * @private
-     * @param {string} path The path to the image file
-     * @returns {Promise<CanvasImageSource>} A Promise that resolves to a CanvasImageSource
-     */
-    static newImagePromise(path)
+    static loadImage(relativePath) 
     {
-        return fetch(path)
+        return this.loadCachedData(Res.pictures_directory + relativePath, path => {
+            return fetch(path)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok')
@@ -68,31 +59,23 @@ class FileUtils
             })
             .then(blob => createImageBitmap(blob))
             .catch(error => {
-                console.error(`Error loading image from ${path}:`, error)
+                console.error(`Error loading data from ${path}:`, error)
                 throw error // rethrow the error to propagate it further
             });
+        })
     }
 
     /**
      * load animation file from animation directory
-     * @param {string} path The path to the animation file relative animation directory
+     * @param {string} relativePath The path to the animation file relative animation directory
      * @returns {Promise<Array<Sprite>>}
      *      A Promise that resolves to animation frames, 
      *      Handle frames in then(), and must return frames for next promise 
      */
-    static loadAnimation(path) {
-        return this.loadData(Res.animation_directory + path, this.newFramesPromise)
-    }
-
-    /**
-     * load animation file from path in background thread
-     * @private 
-     * @param {string} path The path to the image file
-     * @returns {Promise<Array<Sprite>>} A Promise that resolves to animation frames
-     */
-    static newFramesPromise(path)
+    static loadAnimation(relativePath) 
     {
-        return fetch(path)
+        return this.loadCachedData(Res.animation_directory + relativePath, path => {
+            return fetch(path)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok')
@@ -100,7 +83,7 @@ class FileUtils
                 return response.json()
             })
             .then(object => {
-                return FileUtils.loadImage(object.imagePath)
+                return this.loadImage(object.imagePath)
                     .then(image => {
                         let frames = new Array()
                         for(let bounds of object.frameBounds){
@@ -111,31 +94,23 @@ class FileUtils
                     })
             })
             .catch(error => {
-                console.error(`Error loading frames from ${path}:`, error)
+                console.error(`Error loading data from ${path}:`, error)
                 throw error // rethrow the error to propagate it further
             });
+        })
     }
 
     /**
-     * load audio file from music directory
+     * load music file from music directory
      * @param {string} path The path to the music file relative music directory
      * @returns {Promise<AudioBufferSourceNode>}
      *      A Promise that resolves to a AudioBufferSourceNode,
      *      Handle music in then(), and must return music for next promise 
      */
-    static loadMusic(path) {
-        return this.loadData(Res.music_directory + path, this.newMusicPromise)
-    }
-
-    /**
-     * load audio file from path in background thread
-     * @private
-     * @param {string} path The path to the audio file
-     * @returns {Promise<AudioBufferSourceNode>} A Promise that resolves to a AudioBufferSourceNode
-     */
-    static newMusicPromise(path)
+    static loadMusic(relativePath) 
     {
-        return fetch(path)
+        return this.loadCachedData(Res.music_directory + relativePath, path => {
+            return fetch(path)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok')
@@ -150,19 +125,22 @@ class FileUtils
                 return source
             })
             .catch(error => {
-                console.error(`Error loading music from ${path}:`, error)
+                console.error(`Error loading data from ${path}:`, error)
                 throw error // rethrow the error to propagate it further
             });
+        })
     }
 
     /**
      * Load data and cache it using mPathToData map
      * @private
      * @param {string} path The path to the data file
-     * @param {(path: string) => Promise} createData Callback function to create data, called only once
-     * @returns {Promise} A Promise that resolves to data. Handle data in then() and must return data for the next Promise
+     * @param {(path: string) => Promise} createData 
+     *      Callback function to create data, called only once
+     * @returns {Promise} A Promise that resolves to data
+     *      Handle data in then() and must return data for the next Promise
      */
-    static loadData(path, createData) 
+    static loadCachedData(path, createData) 
     {
         let data = this.mPathToData.get(path)
         if (data === undefined) {
@@ -173,8 +151,10 @@ class FileUtils
             this.mPathToData.set(path, data)
         }
         // Return the "load promise"
-        // If the data is still loading, the registered callbacks in then() will be called on fulfillment
-        // If the data is already fulfilled, the callback passed to then() will be called immediately
+        // If the data is still loading, 
+        // the registered callbacks in then() will be called on fulfillment
+        // If the data is already fulfilled, 
+        // the callback passed to then() will be called immediately
         return data
     }
 }
