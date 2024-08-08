@@ -2,9 +2,11 @@ class Res
 {
     static pictures_directory = "../res/pictures/"
     static animation_directory = "../res/animation/"
+    static music_directory = "../res/music"
     
     static pictures = class
     {
+        static over = "over.png"
         static background = "background.png"
         static hero_run = "hero_run.png"
         static hero_jump = "hero_jump.png"
@@ -23,7 +25,15 @@ class Res
         static pillar_style = "pillar_style.json"
         static tortoise_dead = "tortoise_dead.json"
     }
+
+    static music = class
+    {
+        static background = "background.mp3"
+        static hit = "hit.mp3"
+    }
 }
+
+var audioContext = new window.AudioContext();
 
 class FileUtils
 {
@@ -153,5 +163,30 @@ class FileUtils
                 console.error(`Error loading frames from ${path}:`, error);
                 throw error; // rethrow the error to propagate it further
             });
+    }
+
+    static loadMusic(path){
+        
+    }
+
+    /**
+     * load audio file from path in background thread
+     * @private
+     * @param {string} path The path to the audio file
+     * @returns {AudioBufferSourceNode} A Promise that resolves to a AudioBufferSourceNode
+     */
+    static newMusicPromise(path)
+    {
+        return fetch(path)
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+            .then(audioBuffer => {
+                let source = audioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(audioContext.destination);
+                return source
+            })
+            .catch(error => console.error('Fetch error:', error));
+
     }
 }
