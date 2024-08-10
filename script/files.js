@@ -6,7 +6,7 @@ class Res
     
     static pictures = class
     {
-        static over = "over.png"
+        static game_over = "game_over.png"
         static background = "background.png"
         static hero_run = "hero_run.png"
         static hero_jump = "hero_jump.png"
