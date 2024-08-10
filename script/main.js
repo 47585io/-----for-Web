@@ -12,18 +12,20 @@ context.save() // first save
 var scenes = new Scenes(0, 0, groundY)
 
 // register EventListener
-canvas.addEventListener("click", dispatchEvent)
-canvas.addEventListener("contextmenu", dispatchEvent)
-canvas.addEventListener("keyup", dispatchEvent)
+canvas.addEventListener("click", distributeEvent)
+canvas.addEventListener("contextmenu", distributeEvent)
+canvas.addEventListener("keyup", distributeEvent)
 window.onload = resizeGameDisplay
 window.addEventListener("resize", resizeGameDisplay);
 
 /**
  * Distribute the registered events to the scenes
  * @param {Event} event dispatch event
+ * @returns {boolean} if consume event, return true
  */
-function dispatchEvent(event)
+function distributeEvent(event)
 {
+    event.preventDefault()
     if(event instanceof MouseEvent){
         // if event is MouseEvent, Scale its coordinates,
         // let it correct relative to the scenes
@@ -31,7 +33,7 @@ function dispatchEvent(event)
         event.offsetX /= sacle
         event.offsetY /= sacle
     }
-    scenes.dispatchEvent(event)
+    return scenes.dispatchEvent(event)
 }
 
 /**

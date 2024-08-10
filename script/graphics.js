@@ -274,12 +274,15 @@ class Rect extends Object
 
     /**
      * Update this Rect to enclose itself and the specified rectangle
-     * @description The function has 2 operations:
+     * @description The function has 3 operations:
+     * - union(x: number, y: number) (union Point)
      * - union(left: number, top: number, right: number, bottom: number)
      * - union(r: Rect)
      */
     union(){
-        if(arguments.length === 4 && typeof arguments[0] === "number" && typeof arguments[1] === "number" && typeof arguments[2] === "number" && typeof arguments[3] === "number"){
+        if(arguments.length === 2 && typeof arguments[0] === "number" && typeof arguments[1] === "number"){
+            this.unionWithValues(arguments[0], arguments[1], arguments[0], arguments[1])
+        }else if(arguments.length === 4 && typeof arguments[0] === "number" && typeof arguments[1] === "number" && typeof arguments[2] === "number" && typeof arguments[3] === "number"){
             this.unionWithValues(arguments[0], arguments[1], arguments[2], arguments[3])
         }else if(arguments.length === 1 && arguments[0] instanceof Rect){
             let r = arguments[0]

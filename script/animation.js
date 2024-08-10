@@ -1,7 +1,7 @@
 class FrameAnimation
 {
     /**
-     * 
+     * Construct a FrameAnimation with the specified keyFrames
      * @param {Array<Sprite>} frames 
      */
     constructor(frames){
@@ -43,7 +43,7 @@ class FrameAnimation
     /**
      * set each keyframe duartion, and calcute animation duartion,
      * @param {number} duartion Duartion of switch to the next keyframe,
-     * duration refers to the number of times you call update (or the real number of frames)
+     * duration refers to the number of times you call update 
      */
     setFrameDuartion(duartion){
         this.frameDuartion = duartion
@@ -69,7 +69,7 @@ class FrameAnimation
 
     /**
      * get keyFrame of current delta time
-     * @returns {Sprite} 
+     * @returns {Sprite} current keyFrame image
      */
     getCurrentFrame(){
         return this.keyFrames[this.currentIndex]

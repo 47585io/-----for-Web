@@ -1,6 +1,11 @@
 /**
- * The Base Class of all obstacles, 
- * All obstacles added to the scenes should be extends this class
+ * The Base Class for all obstacles in the game.
+ * 
+ * This class serves as the foundation for creating various types of obstacles. 
+ * All obstacle objects added to the scenes should inherit from this class to 
+ * ensure consistent behavior and properties. It manages the basic attributes 
+ * and functionality required for obstacles, including bounds, animations, and 
+ * scenes management.
  */
 class Obstacle
 { 
@@ -233,6 +238,7 @@ class Hero extends Obstacle
         else if(event.type === "contextmenu" && this.mState === Hero.STATE_RUN){
             this.switchState(Hero.STATE_DOWN)
         }
+        return true
     }
 }
 
