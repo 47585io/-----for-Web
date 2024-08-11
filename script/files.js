@@ -33,7 +33,7 @@ class Res
     }
 }
 
-var audioContext = new window.AudioContext();
+var audioContext // create after
 
 class FileUtils
 {

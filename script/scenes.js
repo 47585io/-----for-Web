@@ -122,7 +122,8 @@ class Scenes
     }
 
     /**
-     * Clear all obstacles in the scenes
+     * Clear all obstacles in the scenes, 
+     * and reset scenes state
      */
     clear(){
        this.mObstacles.splice(0, this.mObstacles.length)
@@ -235,27 +236,14 @@ class Scenes
     }
 
     /**
-     * 
-     * @param {Event} event 
-     * @returns {boolean}
+     * Dispatch Event to obstacles in the scenes
+     * @param {Event} event dispatch event
+     * @returns {boolean} If there is an obstacle consume event, return true
      */
-    dispatchEvent(event)
-    {
-        if(this.mGameManger.handleEvent(event)){
-            return true
-        }
-        if(event instanceof MouseEvent){
-            for(let obstacle of this.mObstacles){
-                if(obstacle.mBounds.contains(event.offsetX, event.offsetY)
-                    && obstacle.handleEvent(event))
-                    return true
-            }
-        }
-        else if(event instanceof KeyboardEvent){
-            for(let obstacle of this.mObstacles){
-                if(obstacle.handleEvent(event))
-                    return true
-            }
+    dispatchEvent(event){
+        // In fact, only hero receive the event
+        if(this.mCurrentHero !== null){
+            return this.mCurrentHero.handleEvent(event)
         }
         return false
     }
@@ -303,13 +291,6 @@ class GameManger
         else if(other instanceof Pillar){
             other.onCollision(hero)
         }
-    }
-
-    handleEvent(event){
-        if(this.mScenes.mCurrentHero !== null){
-            return this.mScenes.mCurrentHero.handleEvent(event)
-        }
-        return false
     }
 
     exit(){
