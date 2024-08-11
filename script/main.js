@@ -133,11 +133,12 @@ class GameScreen extends Activity
     distributeEvent(event)
     {
         // Window onload or resize, resizeGameDisplay
-        // This event is not included in the DOM event
+        // But don't send the event to the scenes
         if(event.type === "load" || event.type === "resize"){
             this.resizeGameDisplay()
             return true
         }
+        
         // Browser default action corresponding to cancel the event
         // On the computer, cancel the menu that opens when "contextmenu" is canceled
         // On the phone, double-click the zoom window when "touchend" is canceled
