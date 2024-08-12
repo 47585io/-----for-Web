@@ -131,7 +131,7 @@ class StartScreen extends Activity
         return new Array(srcWidth * maxSacle, srcHeight * maxSacle)
     }
 }
-let lastTouchEnd = 0;
+
 class GameScreen extends Activity
 {
     onStart(){
