@@ -18,7 +18,7 @@ window.onload = distributeEvent
 window.addEventListener("resize", distributeEvent);
 
 /**
- * Distribute events to the current Activity
+ * Distribute the registered events to the current Activity
  * @param {Event} event Distribute event
  * @returns {boolean} if consume event, return true
  */
@@ -148,8 +148,8 @@ class GameScreen extends Activity
     }
 
     /**
-     * Distribute the registered events to the scenes
-     * @param {Event} event dispatch event
+     * Distribute events to the scenes
+     * @param {Event} event Distribute event
      * @returns {boolean} if consume event, return true
     */
     distributeEvent(event)
