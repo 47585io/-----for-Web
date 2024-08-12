@@ -10,29 +10,51 @@ context.save() // first save
 var scenes = new Scenes(0, 0, groundY)
 
 // register EventListener
-canvas.addEventListener('touchend', distributeEvent);
+canvas.addEventListener('touchend', distributeEvent, {passive: false});
 canvas.addEventListener("click", distributeEvent)
 canvas.addEventListener("contextmenu", distributeEvent)
 canvas.addEventListener("keyup", distributeEvent)
 window.onload = distributeEvent
 window.addEventListener("resize", distributeEvent);
 
+/**
+ * Distribute events to the current Activity
+ * @param {Event} event Distribute event
+ * @returns {boolean} if consume event, return true
+ */
 function distributeEvent(event)
 {
-    if (event.type !== "load" && event.type !== "resize"){
-        if (audioContext === undefined){
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();   
-        }
+    // When the user gesture is triggered for the first time
+    // Create and Resume audioContext for FileUtils.loadMusic()
+    if (audioContext === undefined && event.type !== "load" && event.type !== "resize"){ 
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();   
         if (audioContext.state === 'suspended') {
             audioContext.resume();
         }
     }
+
+    // Browser default action corresponding to cancel the event
+    // On the computer, cancel the menu that opens when "contextmenu" is canceled
+    // On the phone, double-click the zoom window when "touchend" is canceled
+    event.preventDefault()
+    // "touchend" event only triggers on the phone
+    // For convenience, convert it to "click" event
+    // Because event.preventDefault() will cancel the "click" event
+    if(event.type === "touchend"){
+        event = new MouseEvent("click")
+    }
     
+    // Distribute events to the current Activity
     let activity = Activity.getCurrentActivity()
-    if (activity !== null)
-        activity.distributeEvent(event)
+    if (activity !== null){
+        return activity.distributeEvent(event)
+    }
+    return false
 }
 
+/**
+ * Continuously draw the current Activity
+ */
 function render(){
     let activity = Activity.getCurrentActivity()
     if (activity !== null)
@@ -109,7 +131,7 @@ class StartScreen extends Activity
         return new Array(srcWidth * maxSacle, srcHeight * maxSacle)
     }
 }
-
+let lastTouchEnd = 0;
 class GameScreen extends Activity
 {
     onStart(){
@@ -137,16 +159,6 @@ class GameScreen extends Activity
         if(event.type === "load" || event.type === "resize"){
             this.resizeGameDisplay()
             return true
-        }
-        
-        // Browser default action corresponding to cancel the event
-        // On the computer, cancel the menu that opens when "contextmenu" is canceled
-        // On the phone, double-click the zoom window when "touchend" is canceled
-        event.preventDefault()
-        // "touchend" event only triggers on the phone
-        // For convenience, convert it to "click" event
-        if(event.type === "touchend"){
-            event = new MouseEvent("click")
         }
         return scenes.dispatchEvent(event)
     }
