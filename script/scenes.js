@@ -251,8 +251,8 @@ class Scenes
 
 class GameManger 
 {
-    static MIN_CREAT_TIME = 50
-    static MAX_CREAT_TIME = 100
+    static MIN_CREAT_TIME = 180
+    static MAX_CREAT_TIME = 360
 
     static OBSTACLE_KIND_COUNT = 3
     static OBSTACLE_KIND = [
@@ -264,6 +264,7 @@ class GameManger
     constructor(scenes)
     {
         this.mScenes = scenes
+        this.mBackgroundMusic = null
         this.timer = 0
         this.nextTime = this.randInt(GameManger.MIN_CREAT_TIME, GameManger.MAX_CREAT_TIME)
 
@@ -274,7 +275,15 @@ class GameManger
             })
     }
 
-    init(){
+    init()
+    {
+        FileUtils.loadMusic(Res.music.background).then(sound => {
+            this.mBackgroundMusic = creatAudioBufferSourceNode(sound)
+            this.mBackgroundMusic.loop = true
+            this.mBackgroundMusic.start()
+            return sound
+        })
+
         let hero = new Hero()
         hero.prepare(obstacle => {
             scenes.addObstacle(obstacle)
@@ -311,7 +320,7 @@ class GameManger
     /** Creat new obstacle on the right side of the scenes */
     creatObstacle()
     {
-        let kind = 2//this.randInt(0, GameManger.OBSTACLE_KIND_COUNT)
+        let kind = this.randInt(0, GameManger.OBSTACLE_KIND_COUNT)
         let obstacle = new GameManger.OBSTACLE_KIND[kind]
         obstacle.prepare(obstacle => {
             if(obstacle instanceof Lion || obstacle instanceof Tortoise){

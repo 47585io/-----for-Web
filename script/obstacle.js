@@ -4,8 +4,8 @@
  * This class serves as the foundation for creating various types of obstacles. 
  * All obstacle objects added to the scenes should inherit from this class to 
  * ensure consistent behavior and properties. It manages the basic attributes 
- * and functionality required for obstacles, including bounds, animations, and 
- * scenes management.
+ * and functionality required for obstacles, including bounds, animations, flags 
+ * and scenes management.
  */
 class Obstacle
 { 
@@ -164,6 +164,7 @@ class Hero extends Obstacle
         this.mState = Hero.STATE_RUN
         this.mAnimations = new Array(3)
         this.hitSound = null
+        this.setPriority(255)
     }
 
     prepare(finish)
@@ -260,6 +261,7 @@ class Lion extends Obstacle
         super()
         this.xSpeed = 1
         this.attack = 1
+        this.setPriority(128)
     }
 
     prepare(finish){
@@ -289,6 +291,7 @@ class Tortoise extends Obstacle
     constructor(){
         super()
         this.attack = 1
+        this.setPriority(127)
     }
 
     broken(){
@@ -341,6 +344,11 @@ class Tortoise extends Obstacle
 
 class Pillar extends Obstacle
 {
+    constructor(){
+        super()
+        this.setPriority(0)
+    }
+
     prepare(finish){
         this.loadAnimation(Res.animation.pillar_style, animation => {
             animation.currentIndex = Math.floor(Math.random() * animation.getFrameCount())
