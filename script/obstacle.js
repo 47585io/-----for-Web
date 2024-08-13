@@ -163,29 +163,33 @@ class Hero extends Obstacle
         this.healthy = 10
         this.mState = Hero.STATE_RUN
         this.mAnimations = new Array(3)
+        this.hitSound = null
     }
 
     prepare(finish)
     {
-        // Arrow functions do not have their own scope, 
-        // function and class have their own scope
-        let prepareCount = 0
+        // Each task completes, prepareCount--
+        // When all tasks are completed, call finish
+        let prepareCount = 4
+
+        FileUtils.loadMusic(Res.music.hit).then(sound => {
+            this.hitSound = sound
+            if(--prepareCount === 0)
+                finish(this)
+            return sound
+        })
 
         this.loadAnimation(Res.animation.hero_run, animation => {
             animation.mAnimationListener = new RepeatAnimationListener()
             this.mAnimations[Hero.STATE_RUN] = animation
-            // Each task completes, prepareCount++
-            // When all tasks are completed, call finish
-            prepareCount++;
-            if(prepareCount === this.mAnimations.length)
+            if(--prepareCount === 0)
                 finish(this)
         })
         
         this.loadAnimation(Res.animation.hero_jump, animation => {
             animation.mAnimationListener = new SwitchAnimationListener(this, Hero.STATE_RUN)
             this.mAnimations[Hero.STATE_JUMP] = animation
-            prepareCount++;
-            if(prepareCount === this.mAnimations.length)
+            if(--prepareCount === 0)
                 finish(this)
         }, false)
 
@@ -193,15 +197,10 @@ class Hero extends Obstacle
             animation.setAnimationDuartion(60)
             animation.mAnimationListener = new SwitchAnimationListener(this, Hero.STATE_RUN)
             this.mAnimations[Hero.STATE_DOWN] = animation
-            prepareCount++;
-            if(prepareCount === this.mAnimations.length)
+            if(--prepareCount === 0)
                 finish(this)
         }, false)
         
-        /**
-         * default, need to be defined before using the class, 
-         * but execute loadAnimation callback has a delay, So class is defined first
-         */
         class SwitchAnimationListener extends AnimationListener
         {
             constructor(hero, state){
@@ -220,6 +219,11 @@ class Hero extends Obstacle
         this.startAnimation(this.mAnimations[state])
     }
 
+    hurt(attack){
+        this.healthy -= attack
+        creatAudioBufferSourceNode(this.hitSound).start()
+    }
+
     update(){
         super.update()
         let jumpHeight = this.jumpStart - this.mBounds.bottom
@@ -229,16 +233,24 @@ class Hero extends Obstacle
         this.mBounds.offset(this.xSpeed, this.ySpeed)
     }
 
-    handleEvent(event){
-        if(event.type === "click" && this.mState === Hero.STATE_RUN){
-            this.ySpeed = -(this.mScenes.mGravity * 2)
-            this.jumpStart = this.mBounds.bottom
-            this.switchState(Hero.STATE_JUMP)
+    handleEvent(event)
+    {
+        if(this.mState === Hero.STATE_RUN)
+        {
+            if((event.type === "click" || 
+               (event.type === "keyup" && event.key === "ArrowUp"))){
+                this.ySpeed = -(this.mScenes.mGravity * 2)
+                this.jumpStart = this.mBounds.bottom
+                this.switchState(Hero.STATE_JUMP)
+                return true
+            }
+            else if((event.type === "contextmenu" ||
+               (event.type === "keyup" && event.key === "ArrowDown"))){
+                this.switchState(Hero.STATE_DOWN)
+                return true
+            }
         }
-        else if(event.type === "contextmenu" && this.mState === Hero.STATE_RUN){
-            this.switchState(Hero.STATE_DOWN)
-        }
-        return true
+        return false
     }
 }
 
@@ -246,7 +258,7 @@ class Lion extends Obstacle
 {
     constructor(){
         super()
-        this.xSpeed = 5
+        this.xSpeed = 1
         this.attack = 1
     }
 
@@ -264,7 +276,7 @@ class Lion extends Obstacle
 
     onCollision(other){
         if(other instanceof Hero){
-            other.healthy -= this.attack
+            other.hurt(this.attack)
             other.mBounds.offset(-this.xSpeed * 10, 0)
         }
     }
@@ -312,11 +324,16 @@ class Tortoise extends Obstacle
 
     onCollision(other)
     {
-        if(other instanceof Hero){
+        if(other instanceof Hero)
+        {
             if(other.mState === Hero.STATE_JUMP && other.ySpeed >= 0){
-                this.broken()
-            }else if(other.mState !== Hero.STATE_DOWN){
-                other.healthy -= this.attack
+                let cx = other.mBounds.centerX()
+                let off = other.mBounds.width() / 4
+                if (cx >= this.mBounds.left - off && cx <= this.mBounds.right + off)
+                    this.broken()
+            }
+            else if(other.mState !== Hero.STATE_DOWN){
+                other.hurt(this.attack)
             }
         }
     }

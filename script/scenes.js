@@ -272,7 +272,9 @@ class GameManger
                 scenes.mBackgroundImage = res
                 return res
             })
-        
+    }
+
+    init(){
         let hero = new Hero()
         hero.prepare(obstacle => {
             scenes.addObstacle(obstacle)

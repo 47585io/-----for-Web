@@ -2,7 +2,7 @@ class Res
 {
     static pictures_directory = "../res/pictures/"
     static animation_directory = "../res/animation/"
-    static music_directory = "../res/music"
+    static music_directory = "../res/music/"
     
     static pictures = class
     {
@@ -103,9 +103,9 @@ class FileUtils
     /**
      * load music file from music directory
      * @param {string} relativePath The path to the music file relative music directory
-     * @returns {Promise<AudioBufferSourceNode>}
-     *      A Promise that resolves to a AudioBufferSourceNode,
-     *      Handle music in then(), and must return music for next promise 
+     * @returns {Promise<AudioBuffer>}
+     *      A Promise that resolves to a AudioBuffer, 
+     *      Handle audio in then(), and must return audio for next promise 
      */
     static loadMusic(relativePath) 
     {
@@ -118,12 +118,6 @@ class FileUtils
                 return response.arrayBuffer()
             })
             .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
-            .then(audioBuffer => {
-                let source = audioContext.createBufferSource()
-                source.buffer = audioBuffer
-                source.connect(audioContext.destination)
-                return source
-            })
             .catch(error => {
                 console.error(`Error loading data from ${path}:`, error)
                 throw error // rethrow the error to propagate it further
@@ -157,4 +151,17 @@ class FileUtils
         // the callback passed to then() will be called immediately
         return data
     }
+}
+
+/**
+ * Create a AudioBufferSourceNode with the specified AudioBuffer,
+ * and connect it to the sound output device
+ * @param {AudioBuffer} audioBuffer 
+ * @returns {AudioBufferSourceNode}
+ */
+function creatAudioBufferSourceNode(audioBuffer){
+    let source = audioContext.createBufferSource()
+    source.buffer = audioBuffer
+    source.connect(audioContext.destination)
+    return source
 }

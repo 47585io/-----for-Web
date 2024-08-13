@@ -13,7 +13,7 @@ var scenes = new Scenes(0, 0, groundY)
 canvas.addEventListener('touchend', distributeEvent, {passive: false});
 canvas.addEventListener("click", distributeEvent)
 canvas.addEventListener("contextmenu", distributeEvent)
-canvas.addEventListener("keyup", distributeEvent)
+window.addEventListener("keyup", distributeEvent)
 window.onload = distributeEvent
 window.addEventListener("resize", distributeEvent);
 
@@ -40,7 +40,7 @@ function distributeEvent(event)
     // "touchend" event only triggers on the phone
     // For convenience, convert it to "click" event
     // Because event.preventDefault() will cancel the "click" event
-    if(event.type === "touchend"){
+    if (event.type === "touchend"){
         event = new MouseEvent("click")
     }
     
@@ -135,6 +135,7 @@ class StartScreen extends Activity
 class GameScreen extends Activity
 {
     onStart(){
+        scenes.mGameManger.init()
         this.resizeGameDisplay()
     }
 
