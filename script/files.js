@@ -14,6 +14,7 @@ class Res
         static lion_run = "lion_run.png"
         static pillar_style = "pillar_style.png"
         static tortoise_dead = "tortoise_dead.png"
+        static icon_item = "icon_item.png"
     }
     
     static animation = class
@@ -24,12 +25,47 @@ class Res
         static lion_run = "lion_run.json"
         static pillar_style = "pillar_style.json"
         static tortoise_dead = "tortoise_dead.json"
+        static icon_item = "icon_item.json"
     }
 
     static music = class
     {
         static background = "background.mp3"
         static hit = "hit.mp3"
+    }
+
+    static icon = class
+    {
+        static fire = 0
+        static snow = 1
+        static thunder = 2
+        static boow = 3
+        static water = 4
+        static bud = 5
+
+        static clover = 6
+        static lucky = 7
+        static rose = 8
+        static lily = 9
+        static withered_flower = 10
+        static wheat = 11
+
+        static red_love = 12
+        static orange_love = 13
+        static yellow_love = 14
+        static green_love = 15
+        static broken_love = 16
+        static strawberry = 17
+
+        static sun = 18
+        static moon = 19
+        static star = 20
+        static light_star = 21
+        static surround_star = 22
+        static shining_stars = 23
+
+        static diamond = 24
+        static gift_box = 25
     }
 }
 

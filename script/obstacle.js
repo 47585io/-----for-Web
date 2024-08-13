@@ -155,12 +155,16 @@ class Hero extends Obstacle
     static STATE_JUMP = 1
     static STATE_DOWN = 2
 
-    constructor(){
+    constructor()
+    {
         super()
         this.xSpeed = 5
         this.ySpeed = 0
         this.jumpStart = 0
+
         this.healthy = 10
+        this.score = 0
+        
         this.mState = Hero.STATE_RUN
         this.mAnimations = new Array(3)
         this.hitSound = null

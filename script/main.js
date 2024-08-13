@@ -134,6 +134,15 @@ class StartScreen extends Activity
 
 class GameScreen extends Activity
 {
+    constructor(){
+        super()
+        this.gameIcons = null
+        FileUtils.loadAnimation(Res.animation.icon_item).then(icons => {
+            this.gameIcons = icons
+            return icons
+        })
+    }
+
     onStart(){
         scenes.mGameManger.init()
         this.resizeGameDisplay()
@@ -146,6 +155,15 @@ class GameScreen extends Activity
     render(context){
         scenes.update()
         scenes.draw(context)
+        if(this.gameIcons !== null){
+            let frame = this.gameIcons[Res.icon.light_star]
+            let image = frame.image
+            let bounds = frame.bounds
+            context.drawImage(image, bounds.left, bounds.top, bounds.width(), bounds.height(),
+                                0, 0, bounds.width(), bounds.height())
+            let str = scenes.mScroll.toString()
+            context.fillText(str, 100, 100)
+        }
     }
 
     /**
