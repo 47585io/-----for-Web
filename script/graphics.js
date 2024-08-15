@@ -129,6 +129,39 @@ class Rect extends Object
     }
 
     /**
+     * Insets the rectangle on all sides specified by the insets.
+     * * @description The function has 3 operations:
+     * - inset(x: number, y: number)
+     * - inset(left: number, top: number, right: number, bottom: number)
+     * - inset(r: Rect)
+     */
+    inset(){
+        if(arguments.length === 2 && typeof arguments[0] === "number" && typeof arguments[1] === "number"){
+            this.insetWithValues(arguments[0], arguments[1], arguments[0], arguments[1])
+        }else if(arguments.length === 4 && typeof arguments[0] === "number" && typeof arguments[1] === "number" && typeof arguments[2] === "number" && typeof arguments[3] === "number"){
+            this.insetWithValues(arguments[0], arguments[1], arguments[2], arguments[3])
+        }else if(arguments.length === 1 && arguments[0] instanceof Rect){
+            let r = arguments[0]
+            this.insetWithValues(r.left, r.top, r.right, r.bottom)
+        }
+    }
+
+    /**
+     * Insets the rectangle on all sides specified by the insets.
+     * @private
+     * @param left The amount to add from the rectangle's left
+     * @param top The amount to add from the rectangle's top
+     * @param right The amount to subtract from the rectangle's right
+     * @param bottom The amount to subtract from the rectangle's bottom
+     */
+    insetWithValues(left, top, right, bottom) {
+        this.left += left;
+        this.top += top;
+        this.right -= right;
+        this.bottom -= bottom;
+    }
+
+    /**
      * Returns true if the specified rectangle is equal to this rectangle
      * @description The function has 2 operations:
      * - equals(left: number, top: number, right: number, bottom: number): boolean
@@ -306,18 +339,16 @@ class Rect extends Object
     }
 
     /**
-     * Scale the rectangle by the specified multiple relative to its midpoint.
+     * Scale the rectangle by the specified multiple 
      * @param {number} sacle Sacle multiple
      */
     sacle(sacle){
-        let cx = this.centerX()
-        let cy = this.centerY()
-        let dx = (cx - this.left) * sacle
-        let dy = (cy - this.top) * sacle
-        this.left = cx - dx
-        this.top = cy - dy
-        this.right = cx + dx
-        this.bottom = cy + dy
+        if(sacle != 1.0){
+            this.left *= sacle
+            this.top *= sacle
+            this.right *= sacle
+            this.bottom *= sacle
+        }
     }
 
     /**
@@ -369,6 +400,18 @@ class RectUtils
             ret.set(r1)
             ret.setIntersects(r2)
         }
+        return ret
+    }
+
+    /**
+     * 
+     * @param {Rect} src 
+     * @param {Rect} insets 
+     * @returns {Rect}
+     */
+    static getInsetRect(src, insets){
+        let ret = new Rect(src)
+        ret.inset(insets)
         return ret
     }
 }

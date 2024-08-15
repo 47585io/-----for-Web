@@ -35,30 +35,6 @@ class Scenes
     }
 
     /**
-     * Resize scenes, and adjust the position of obstacles in the scenes
-     * @param {number} width 
-     * @param {number} height 
-     */
-    resize(width, height)
-    {
-        this.mWidth =  width
-        this.mHeight = height
-
-        // put hero in the middle of the scenes
-        // and calculate it offset from the last position
-        // offset obstacles in the scenes
-        // so that they remain the same relative to the position of the hero
-        if(this.mCurrentHero !== null){
-            let middle = width >> 1
-            let bounds = this.mCurrentHero.mBounds
-            let dx = middle - (bounds.width() >> 1) - bounds.left
-            for(let obstacle of this.mObstacles){
-                obstacle.mBounds.offset(dx, 0)
-            }
-        }
-    }
-
-    /**
      * Add an obstacle to the scenes, 
      * and reorders the obstacle array in order of priority.
      * obstacles with lower priority will be placed earlier in the list, 
@@ -197,11 +173,8 @@ class Scenes
         }
         
         // Draw obstacles in the scenes
-        // Only obstacles that are drawn in the visual area
-        // because some obstacles may exceed the scenes at resize
         for(let obstacle of this.mObstacles){
-            if(obstacle.mBounds.intersects(0, 0, this.mWidth, this.mHeight))
-                obstacle.draw(context)
+            obstacle.draw(context)
         }
     }
 
@@ -275,6 +248,11 @@ class GameManger
             })
     }
 
+    getHeroScore(){
+        
+        return this.mScenes.mScroll + this.mScenes.mCurrentHero.score
+    }
+
     init()
     {
         FileUtils.loadMusic(Res.music.background).then(sound => {
@@ -286,9 +264,11 @@ class GameManger
 
         let hero = new Hero()
         hero.prepare(obstacle => {
-            scenes.addObstacle(obstacle)
-            scenes.mCurrentHero = obstacle
-            scenes.resize(scenes.mWidth, scenes.mHeight)
+            this.mScenes.addObstacle(obstacle)
+            this.mScenes.mCurrentHero = obstacle
+            let bounds = hero.mBounds
+            let dx = (this.mScenes.mWidth >> 1) - (bounds.width() >> 1)
+            bounds.offsetTo(dx, 0)
         })
     }
 

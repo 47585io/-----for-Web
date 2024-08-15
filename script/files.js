@@ -121,10 +121,22 @@ class FileUtils
             .then(object => {
                 return this.loadImage(object.imagePath)
                     .then(image => {
-                        let frames = new Array()
-                        for(let bounds of object.frameBounds){
-                            let rect = new Rect(bounds[0], bounds[1], bounds[2], bounds[3])
-                            frames.push(new Sprite(image, rect))
+                        let frameBounds = object.frameBounds
+                        let frameInsets
+                        if("frameInsets" in object){
+                            frameInsets = object.frameInsets
+                        }
+
+                        const frames = new Array(frameBounds.length)
+                        for(let i = 0; i < frameBounds.length; ++i)
+                        {
+                            let bounds = new Rect(...frameBounds[i])
+                            if(frameInsets !== undefined){
+                                let insets = new Rect(...frameInsets[i])
+                                frames[i] = new InsetSprite(image, bounds, insets)
+                            }else{
+                                frames[i] = new Sprite(image, bounds)
+                            }
                         }
                         return frames
                     })

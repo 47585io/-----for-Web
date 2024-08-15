@@ -21,6 +21,30 @@ class Obstacle
     }
 
     /**
+     * Get the position of the image of the obstacle in the scenes
+     * @returns {Rect} an image rectangle, 
+     * You can modify the rectangle to change the position of the obstacle
+     */
+    getImageBounds(){
+        return this.mBounds
+    }
+
+    /**
+     * Get the collision rectangle of the obstacle
+     * @returns {Rect} an calculated rectangle of the image rectanglt
+     */
+    getCollisionBounds()
+    {
+        if(this.mActiveAnimation !== null){
+            const sprite = this.mActiveAnimation.getCurrentFrame()
+            if(sprite instanceof InsetSprite){
+                return RectUtils.getInsetRect(this.mBounds, sprite.insets)
+            }
+        }
+        return this.mBounds
+    }
+
+    /**
      * The method of callback before you will added to the scenes, 
      * prepare your data until you're ready to call finish, 
      * you must set your mActiveAnimation and mBounds
@@ -120,6 +144,14 @@ class Obstacle
      */
     draw(context) 
     {
+        if(DEBUG){
+            let bounds = this.getCollisionBounds()
+            context.fillStyle = "rgba(255, 0, 0, 0.5)"
+            context.beginPath()
+            context.rect(bounds.left, bounds.top, bounds.width(), bounds.height())
+            context.fill()
+        }
+
         // Draw the image of the current frame of
         // the mActiveAnimation in the location of mBounds
         if(this.mActiveAnimation !== null){
@@ -336,8 +368,10 @@ class Tortoise extends Obstacle
             if(other.mState === Hero.STATE_JUMP && other.ySpeed >= 0){
                 let cx = other.mBounds.centerX()
                 let off = other.mBounds.width() / 4
-                if (cx >= this.mBounds.left - off && cx <= this.mBounds.right + off)
+                if (cx >= this.mBounds.left - off && cx <= this.mBounds.right + off){
                     this.broken()
+                    other.score += 5000
+                }
             }
             else if(other.mState !== Hero.STATE_DOWN){
                 other.hurt(this.attack)

@@ -99,6 +99,18 @@ class Sprite
     }
 }
 
+/**
+ * This class is used to represent an image in a specified rectangular area,
+ * and Insets the rectangle on all sides
+ */
+class InsetSprite extends Sprite
+{
+    constructor(image, bounds, insets){
+        super(image, bounds)
+        this.insets = insets
+    }
+}
+
 class AnimationListener
 {
     onAnimationStart(animation){}
