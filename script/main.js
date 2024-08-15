@@ -45,29 +45,18 @@ function distributeEvent(event)
     // On the phone, double-click the zoom window when "touchend" is canceled
 
     // "touchend" event only triggers on the phone
-    // When you click on the window, first trigger "touchend" and then "click"
-    // but continuous clicks will not trigger the "click"
-    // and "click" is default action of "touchend"
-
-    // "contextmenu" is "longpress", "longpress" is triggered before "touchend"
-    // If "longpress" is triggered, "click" will not be triggered
-
-    // Only handle one finger event, the multi-finger touch is too complicated
+    // When multiple fingers are touched
+    // only handle the "touchend" of the last finger
     if (event.type === "touchend" && event.touches.length === 0)
     {
         const currentTime = new Date().getTime()
         const timeDifference = currentTime - lastTouchEnd
         // If the time interval between two "touchend" is less than 300ms
         // it is considered as continuous clicks
-        if (timeDifference <= 300) 
-        {
+        if (timeDifference <= 300) {
             // When clicked continuously, cancel the zoom window
             // and each "touchend" is converted to "click"
             // Because continuous clicks will not trigger the "click"
-
-            // If the last "touchend" was the end of "longpress"
-            // Treat "touchend" as "click" 
-            // and cancel the "click" event that is about to be triggered
             event.preventDefault()
             event = new MouseEvent("click")
         }
