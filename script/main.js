@@ -1,6 +1,3 @@
-let lastTouchEnd = 0
-let windowLoaded = false
-
 const startScreenWidth = 1012
 const startScreenHeight = 453
 const backgroundWidth = 1012
@@ -8,17 +5,29 @@ const backgroundHeight = 396
 const groundY = 360
 
 var DEBUG = true
+var WindowLoaded = false
+
 var canvas = document.getElementById("display")
 var context = canvas.getContext("2d")
 var scenes = new Scenes(backgroundWidth, backgroundHeight, groundY)
 
 // register EventListener
-window.addEventListener('touchend', distributeEvent, {passive: false});
-window.addEventListener("click", distributeEvent)
-window.addEventListener("contextmenu", distributeEvent)
-window.addEventListener("keyup", distributeEvent)
-window.onload = distributeEvent
-window.addEventListener("resize", distributeEvent);
+window.onload = resizeActivity
+window.onresize = resizeActivity
+window.onclick = distributeEvent
+window.oncontextmenu = distributeEvent
+window.onkeyup = distributeEvent
+
+/**
+ * When the window size changes, resize the current Activity
+ */
+function resizeActivity(){
+    WindowLoaded = true
+    let activity = Activity.getCurrentActivity()
+    if (activity !== null){
+        activity.onResize()
+    }
+}
 
 /**
  * Distribute the registered events to the current Activity
@@ -27,53 +36,19 @@ window.addEventListener("resize", distributeEvent);
  */
 function distributeEvent(event)
 {
-    if (event.type === "load"){
-        windowLoaded = true
-    }
-
-    // When the user gesture is triggered for the first time
+    // When the user gestu re is triggered for the first time
     // Create and Resume audioContext for FileUtils.loadMusic()
-    if (audioContext === undefined && event.type !== "load" && event.type !== "resize"){ 
+    if (audioContext === undefined){ 
         audioContext = new (window.AudioContext || window.webkitAudioContext)()  
         if (audioContext.state === 'suspended') {
             audioContext.resume()
         }
     }
 
-    // Browser default action corresponding to cancel the event
-    // On the computer, cancel the menu that opens when "contextmenu" is canceled
-    // On the phone, double-click the zoom window when "touchend" is canceled
-
-    // "touchend" event only triggers on the phone
-    // When multiple fingers are touched
-    // only handle the "touchend" of the last finger
-    if (event.type === "touchend" && event.touches.length === 0)
-    {
-        const currentTime = new Date().getTime()
-        const timeDifference = currentTime - lastTouchEnd
-        // If the time interval between two "touchend" is less than 300ms
-        // it is considered as continuous clicks
-        if (timeDifference <= 300) {
-            // When clicked continuously, cancel the zoom window
-            // and each "touchend" is converted to "click"
-            // Because continuous clicks will not trigger the "click"
-            event.preventDefault()
-            event = new MouseEvent("click")
-        }
-        lastTouchEnd = currentTime
-    }
-    else{
-        // Default actions to cancel other events
-        event.preventDefault()
-    }
-
     // Distribute events to the current Activity
-    // But don't send "touchend" event, it repeats with "click"
-    if (event.type !== "touchend"){
-        let activity = Activity.getCurrentActivity()
-        if (activity !== null){
-            return activity.distributeEvent(event)
-        }
+    let activity = Activity.getCurrentActivity()
+    if (activity !== null){
+        return activity.distributeEvent(event)
     }
     return false
 }
@@ -94,43 +69,29 @@ class StartScreen extends Activity
 {
     constructor(){
         super()
-        this.startImage = undefined
+        this.startImage = null
         FileUtils.loadImage(Res.pictures.game_over)
-            .then(image => {
-                this.startImage = image
-                return image
-            })
+        .then(image => {
+            this.startImage = image
+            return image
+        })
     }
 
-    onResume(){
-        this.resizeStartScreen()
+    onResize(){
+        putDisplayElementToMiddle(startScreenWidth, startScreenHeight, window.innerWidth, window.innerHeight)
     }
 
     render(context){
-        if(this.startImage !== undefined)
+        if(this.startImage !== null)
             context.drawImage(this.startImage, 0, 0)
     }
 
     distributeEvent(event)
     {
-        if(event.type === "load" || event.type === "resize"){
-            this.resizeStartScreen()
-        }
-        else if(this.startImage !== undefined){
+        if(this.startImage !== undefined){
             Activity.startActivity(new GameScreen())
         }
     }
-
-    resizeStartScreen()
-    {
-        let srcWidth = startScreenWidth
-        let srcHeight = startScreenHeight
-        let dstWidth = window.innerWidth
-        let dstHeight = window.innerHeight
-        putDisplayElementToMiddle(srcWidth, srcHeight, dstWidth, dstHeight)
-    }
-
-    
 }
 
 class GameScreen extends Activity
@@ -146,7 +107,13 @@ class GameScreen extends Activity
 
     onStart(){
         scenes.mGameManger.init()
-        this.resizeGameDisplay()
+    }
+    
+    /**
+     * When the window size changes, adjust the canvas size
+     */
+    onResize(){
+        putDisplayElementToMiddle(scenes.mWidth, scenes.mHeight, window.innerWidth, window.innerHeight)
     }
 
     /**
@@ -189,7 +156,7 @@ class GameScreen extends Activity
         let textWidth = textMetrics.width
         let textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
 
-        context.fillStyle = "rgba(0,0,0,0.5)"
+        context.fillStyle = "rgba(0, 0, 0, 0.5)"
         context.beginPath()
         context.roundRect(x, y, imageWidth + textWidth + 3 * div, imageHeight + 2.* div, 10)
         context.fill()
@@ -211,22 +178,8 @@ class GameScreen extends Activity
      * @param {Event} event Distribute event
      * @returns {boolean} if consume event, return true
     */
-    distributeEvent(event)
-    {
-        // Window onload or resize, resizeGameDisplay
-        // But don't send the event to the scenes
-        if(event.type === "load" || event.type === "resize"){
-            this.resizeGameDisplay()
-            return true
-        }
+    distributeEvent(event){
         return scenes.dispatchEvent(event)
-    }
-
-    /**
-     * When the window size changes, adjust the canvas size
-     */
-    resizeGameDisplay(){
-        putDisplayElementToMiddle(scenes.mWidth, scenes.mHeight, window.innerWidth, window.innerHeight)
     }
 }
 Activity.startActivity(new StartScreen())

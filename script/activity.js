@@ -31,6 +31,9 @@ class Activity
         Activity.mActivityStack.push(activity);
         Activity.mCurrentIndex++;
         activity.onStart(); 
+        if(WindowLoaded){
+            activity.onResize()
+        }
     }
 
     /**
@@ -44,8 +47,11 @@ class Activity
         Activity.mCurrentIndex--;
         activity.onStop(); 
         if (Activity.mCurrentIndex >= 0) {
-          const previousActivity = Activity.mActivityStack[Activity.mCurrentIndex];
-          previousActivity.onResume();
+            const previousActivity = Activity.mActivityStack[Activity.mCurrentIndex];
+            previousActivity.onResume();
+            if(WindowLoaded){
+                previousActivity.onResize()
+            }
         }
     }
 
@@ -81,6 +87,12 @@ class Activity
      * the method is called
      */
     onStop(){}
+
+    /**
+     * When the size of the window containing the Activity changes,
+     * the method is called
+     */
+    onResize(){}
 
     /**
      * The method of callback when the Activity render in the foreground
