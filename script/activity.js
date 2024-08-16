@@ -186,24 +186,30 @@ class GameScreen extends Activity
             return sound
         })
 
-        this.gameIcons = null
-        FileUtils.loadAnimation(Res.animation.icon_item).then(icons => {
-            this.gameIcons = icons
-            return icons
-        })
+        this.mScenes.mGameManger.exit = function(){
+            Activity.exitActivity()
+        }
+    }
 
-        this.mScenes.mGameManger.exit = 
+    onPause(){
+        super.onPause()
+        audioContext.suspend()
+    }
+
+    onResume(){
+        super.onResume()
+        audioContext.resume()
     }
 
     onStop(){
+        super.onStop()
         this.mBackgroundMusic.stop()
     }
     
-    /**
-     * When the window size changes, adjust the canvas size
-     */
+    /** When the window size changes, adjust the canvas size */
     onResize(){
-        putDisplayElementToMiddle(scenes.mWidth, scenes.mHeight, window.innerWidth, window.innerHeight)
+        putDisplayElementToMiddle(this.mScenes.mWidth, this.mScenes.mHeight, 
+            window.innerWidth, window.innerHeight)
     }
 
     /**
@@ -212,57 +218,21 @@ class GameScreen extends Activity
      */
     render(context){
         if(this.isRunning){
-            scenes.update()
+            this.mScenes.update()
         }
-        scenes.draw(context)
+        this.mScenes.draw(context)
         this.drawGameStatePanel(context)
     }
     
     drawGameStatePanel(context)
     {
-        if(this.gameIcons !== null && scenes.mCurrentHero !== null){
-            let s = this.gameIcons[Res.icon.clover]
-            let heal = scenes.mCurrentHero.healthy
-            let x = this.drawIcon(context, s, 0, 0, heal)
-            let sprite = this.gameIcons[Res.icon.surround_star]
-            this.drawIcon(context, sprite, x  + 10, 0, scenes.mGameManger.getHeroScore().toString())
+        if(this.mScenes.mCurrentHero !== null)
+        {
+            const heal = this.mScenes.mCurrentHero.healthy
+            const x = drawIcon(context, Res.icon.clover, 0, 0, heal.toString())
+            const score = this.mScenes.mGameManger.getHeroScore()
+            drawIcon(context, Res.icon.surround_star, x + div, 0, score.toString())
         }
-    }
-
-    /**
-     * Draw Icon and text, include in a rectangle
-     * @param {CanvasRenderingContext2D} context 
-     * @param {Sprite} sprite icon to draw
-     * @param {number} x start position
-     * @param {number} y start position
-     * @param {string} text text to draw
-     * @returns {number} X coordinate of the end position drawn
-     */
-    drawIcon(context, sprite, x, y, text)
-    {
-        const div = 10
-        let bounds = sprite.bounds
-        let imageWidth = sprite.bounds.width()
-        let imageHeight = sprite.bounds.height()
-        let textMetrics = context.measureText(text)
-        let textWidth = textMetrics.width
-        let textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
-
-        context.fillStyle = "rgba(0, 0, 0, 0.5)"
-        context.beginPath()
-        context.roundRect(x, y, imageWidth + textWidth + 3 * div, imageHeight + 2.* div, 10)
-        context.fill()
-
-        context.drawImage(sprite.image, bounds.left, bounds.top, imageWidth, imageHeight,
-            x + div, y + div, imageWidth, imageHeight)
-
-        
-        context.fillStyle = "rgb(255, 255, 255)"
-        context.font = "35px monospace"
-        context.textBaseline = "top"
-        let off = (imageHeight - textHeight) / 2
-        context.fillText(text, x + imageWidth + 2 * div, y + div + off)
-        return x + imageWidth + textWidth + 3 * div
     }
 
     /**
@@ -270,9 +240,56 @@ class GameScreen extends Activity
      * @param {Event} event Distribute event
      * @returns {boolean} if consume event, return true
     */
-    distributeEvent(event){
-        if(!this.isPause){
-            return scenes.dispatchEvent(event)
-        }
+    distributeEvent(event){ 
+        return this.mScenes.dispatchEvent(event)
     }
+}
+
+const div = 10
+let gameIcons = null
+FileUtils.loadAnimation(Res.animation.icon_item).then(icons => {
+    gameIcons = icons
+    return icons
+})
+
+/**
+ * Draw Icon and text, include in a rectangle
+ * @param {CanvasRenderingContext2D} context 
+ * @param {number} icon icon to draw
+ * @param {number} x start position
+ * @param {number} y start position
+ * @param {string} text text to draw
+ * @returns {number} X coordinate of the end position drawn
+ */
+function drawIcon(context, icon, x, y, text)
+{
+    if(gameIcons === null){
+        return x
+    }
+
+    const sprite = gameIcons[icon]
+    const bounds = sprite.bounds
+    const imageWidth = bounds.width()
+    const imageHeight = bounds.height()
+
+    const textMetrics = context.measureText(text)
+    const textWidth = textMetrics.width
+    const textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+
+    const rectWidth = imageWidth + textWidth + 3 * div
+    context.fillStyle = "rgba(0, 0, 0, 0.5)"
+    context.beginPath()
+    context.roundRect(x, y, rectWidth, imageHeight + 2 * div, div)
+    context.fill()
+
+    context.drawImage(sprite.image, bounds.left, bounds.top, imageWidth, imageHeight,
+        x + div, y + div, imageWidth, imageHeight)
+
+    
+    context.fillStyle = "rgb(255, 255, 255)"
+    context.font = "35px monospace"
+    context.textBaseline = "top"
+    const off = (imageHeight - textHeight) / 2
+    context.fillText(text, x + imageWidth + 2 * div, y + div + off)
+    return x + rectWidth
 }

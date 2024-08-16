@@ -49,7 +49,7 @@ class Scenes
      */
     removeObstacleAt(index)
     {
-        let obstacle = this.mObstacles[index]
+        const obstacle = this.mObstacles[index]
         this.mObstacles.splice(index, 1)
         obstacle.mScenes = null
         obstacle.onRemoveFromScenes(this)
@@ -71,8 +71,8 @@ class Scenes
      */
     getObstacles(left, top, right, bottom)
     {
-        let ret = new Array()
-        for(let obstacle of this.mObstacles){
+        const ret = new Array()
+        for(const obstacle of this.mObstacles){
             if(obstacle.mBounds.intersects(left, top, right, bottom))
                 ret.push(obstacle)
         }
@@ -184,7 +184,7 @@ class Scenes
      * @returns {boolean} If there is an obstacle consume event, return true
      */
     dispatchEvent(event){
-        // In fact, only hero receive the event
+        // Only hero receive the event
         if(this.mCurrentHero !== null){
             return this.mCurrentHero.handleEvent(event)
         }
@@ -192,11 +192,13 @@ class Scenes
     }
 }
 
+/**
+ * The scenes is responsible for traversing all obstacles, 
+ * but the complex logic will be handed over to this class
+ */
 class GameManger 
 {
-    static MIN_CREAT_TIME = 180
-    static MAX_CREAT_TIME = 360
-
+    static OBSTACLE_CREAT_TIME = 300
     static OBSTACLE_KIND_COUNT = 3
     static OBSTACLE_KIND = [
         Lion, 
@@ -208,21 +210,30 @@ class GameManger
     {
         this.mScenes = scenes
         this.timer = 0
-        this.nextTime = this.randInt(GameManger.MIN_CREAT_TIME, GameManger.MAX_CREAT_TIME)
         
+        // creat hero and put in the middle of the scenes
         const hero = new Hero()
         hero.prepare(obstacle => {
             this.mScenes.addObstacle(obstacle)
             this.mScenes.mCurrentHero = obstacle 
             const dx = (this.mScenes.mWidth >> 1) - (obstacle.mBounds.width() >> 1)
-            bounds.offsetTo(dx, 0)
+            obstacle.mBounds.offsetTo(dx, 0)
         })
     }
 
+    /**
+     * Returns the score of the hero
+     * @returns {number}
+     */
     getHeroScore(){
         return this.mScenes.mScroll + this.mScenes.mCurrentHero.score
     }
 
+    /**
+     * This method is used to handle and dispatch collision logic
+     * @param {Hero} hero 
+     * @param {Obstacle} other 
+     */
     onCollision(hero, other)
     {
         // Lion and Tortoise can only collide once with Hero
@@ -236,15 +247,20 @@ class GameManger
     }
 
     /**
-     * 
+     * The empty method of callback when the game exits, 
+     * You can overwrite this method to listen to the game exit logic
      */
     exit(){}
 
-    creatObstacleIfhasNext(){
-        if(this.timer === this.nextTime){
+    /** 
+     * If the time to create the obstacle is reached, 
+     * create a random obstacle 
+     */
+    creatObstacleIfhasNext()
+    {
+        if(this.timer === GameManger.OBSTACLE_CREAT_TIME){
             this.creatObstacle()
             this.timer = 0
-            this.nextTime = this.randInt(GameManger.MIN_CREAT_TIME, GameManger.MAX_CREAT_TIME)
         }
         this.timer++
     }
@@ -252,11 +268,11 @@ class GameManger
     /** Creat new obstacle on the right side of the scenes */
     creatObstacle()
     {
-        let kind = this.randInt(0, GameManger.OBSTACLE_KIND_COUNT)
-        let obstacle = new GameManger.OBSTACLE_KIND[kind]
+        const kind = Math.floor(Math.random() * GameManger.OBSTACLE_KIND_COUNT)
+        const obstacle = new GameManger.OBSTACLE_KIND[kind]
         obstacle.prepare(obstacle => {
             if(obstacle instanceof Lion || obstacle instanceof Tortoise){
-                let dy = this.mScenes.mGroundY - obstacle.mBounds.height()
+                const dy = this.mScenes.mGroundY - obstacle.mBounds.height()
                 obstacle.mBounds.offsetTo(this.mScenes.mWidth, dy)
             }
             else if(obstacle instanceof Pillar){
@@ -264,16 +280,5 @@ class GameManger
             }
             this.mScenes.addObstacle(obstacle)
         })
-    }
-
-    /**
-     * Randomly generate integers within the specified range
-     * @param {number} min range start
-     * @param {number} max range end
-     * @returns {number} Returns a random integer between (min, max),
-     *                   include min, but not include max
-     */
-    randInt(min, max){
-        return Math.floor(Math.random() * (max - min)) + min;
     }
 }

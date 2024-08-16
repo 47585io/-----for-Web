@@ -4,8 +4,7 @@
  * This class serves as the foundation for creating various types of obstacles. 
  * All obstacle objects added to the scenes should inherit from this class to 
  * ensure consistent behavior and properties. It manages the basic attributes 
- * and functionality required for obstacles, including bounds, animations, flags 
- * and scenes management.
+ * and functionality required for obstacles
  */
 class Obstacle
 { 
@@ -15,6 +14,7 @@ class Obstacle
 
     constructor(){
         this.mBounds = new Rect()
+        this.mCurrentSprite = null
         this.mActiveAnimation = null
         this.mPrivateFlags = 0
         this.mScenes = null
@@ -35,11 +35,9 @@ class Obstacle
      */
     getCollisionBounds()
     {
-        if(this.mActiveAnimation !== null){
-            const sprite = this.mActiveAnimation.getCurrentFrame()
-            if(sprite instanceof InsetSprite){
-                return RectUtils.getInsetRect(this.mBounds, sprite.insets)
-            }
+        const sprite = this.mCurrentSprite
+        if(sprite !== null && sprite instanceof InsetSprite){
+            return RectUtils.getInsetRect(this.mBounds, sprite.insets)
         }
         return this.mBounds
     }
@@ -73,6 +71,20 @@ class Obstacle
     startAnimation(animation){
         this.mActiveAnimation = animation
         this.mActiveAnimation.start()
+        this.updateSprite(this.mActiveAnimation.getCurrentFrame())
+    }
+
+    /**
+     * update mCurrentSprite to sprite and  
+     * set the size of mBounds with the size of the sprite.bounds
+     * @param {Sprite} sprite 
+     */
+    updateSprite(sprite){
+        this.mCurrentSprite = sprite
+        const srcBounds = this.mCurrentSprite.bounds
+        const dstBounds = this.mBounds
+        dstBounds.right = dstBounds.left + srcBounds.width()
+        dstBounds.top = dstBounds.bottom - srcBounds.height()
     }
 
     /**
@@ -82,7 +94,7 @@ class Obstacle
      *      the callback are used to animation or perform other operations,
      *      it is called at the end of the function without worrying about any dependencies
      * @param {boolean} setActive if true, startAnimation to it,
-     *      and set mBounds to the size of the first frame of the animation
+     *      and set mCurrentSprite and mBounds to the first frame of the animation
      */
     loadAnimation(path, configAnimation = undefined, setActive = true)
     {
@@ -91,7 +103,6 @@ class Obstacle
                 let animation = new FrameAnimation(frames)
                 if(setActive){
                     this.startAnimation(animation)
-                    this.mBounds.set(this.mActiveAnimation.getCurrentFrame().bounds)
                 }
                 if(configAnimation !== undefined)
                     configAnimation(animation)
@@ -122,19 +133,12 @@ class Obstacle
         return this.mPrivateFlags & Obstacle.OBSTACLE_PRIORITY
     }
 
-    /**
-     * The method of callback before draw, update your state
-     */
-    update()
-    {
-        // set the size of the target rectangle with the size of the source rectangle
-        // default is to use the bottom and left
+    /** The method of callback before draw, update your state */
+    update(){
+        // update animation to next frame
         if(this.mActiveAnimation !== null){
             this.mActiveAnimation.update()
-            let srcBounds = this.mActiveAnimation.getCurrentFrame().bounds
-            let dstBounds = this.mBounds
-            dstBounds.right = dstBounds.left + srcBounds.width()
-            dstBounds.top = dstBounds.bottom - srcBounds.height()
+            this.updateSprite(this.mActiveAnimation.getCurrentFrame())
         }
     }
 
@@ -144,21 +148,20 @@ class Obstacle
      */
     draw(context) 
     {
+        // onDebug, Draw the collisionBounds of the obstacle
         if(DEBUG){
-            let bounds = this.getCollisionBounds()
+            const bounds = this.getCollisionBounds()
             context.fillStyle = "rgba(255, 0, 0, 0.5)"
             context.beginPath()
             context.rect(bounds.left, bounds.top, bounds.width(), bounds.height())
             context.fill()
         }
 
-        // Draw the image of the current frame of
-        // the mActiveAnimation in the location of mBounds
-        if(this.mActiveAnimation !== null){
-            let frame = this.mActiveAnimation.getCurrentFrame()
-            let image = frame.image
-            let srcBounds = frame.bounds
-            let dstBounds = this.mBounds
+        // Draw the image of the current frame in the location of mBounds
+        if(this.mCurrentSprite !== null){
+            const image = this.mCurrentSprite.image
+            const srcBounds = this.mCurrentSprite.bounds
+            const dstBounds = this.mBounds
             context.drawImage(image, srcBounds.left, srcBounds.top, srcBounds.width(), srcBounds.height(),
                 dstBounds.left, dstBounds.top, dstBounds.width(), dstBounds.height())
         }
@@ -388,10 +391,11 @@ class Pillar extends Obstacle
     }
 
     prepare(finish){
-        this.loadAnimation(Res.animation.pillar_style, animation => {
-            animation.currentIndex = Math.floor(Math.random() * animation.getFrameCount())
-            this.mBounds.set(animation.getCurrentFrame().bounds)
+        FileUtils.loadAnimation(Res.animation.pillar_style).then(frames => {
+            const random = Math.floor(Math.random() * frames.length)
+            this.updateSprite(frames[random])
             finish(this)
+            return frames
         })
     }
 

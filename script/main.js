@@ -11,9 +11,7 @@ window.onclick = distributeEvent
 window.oncontextmenu = distributeEvent
 window.onkeyup = distributeEvent
 
-/**
- * When the window size changes, resize the current Activity
- */
+/** When the window size changes, resize the current Activity */
 function resizeActivity(){
     WindowLoaded = true
     let activity = Activity.getCurrentActivity()
@@ -49,9 +47,7 @@ function distributeEvent(event)
     return false
 }
 
-/**
- * Continuously draw the current Activity
- */
+/** Continuously draw the current Activity */
 function render(){
     let activity = Activity.getCurrentActivity()
     if (activity !== null)
@@ -60,7 +56,7 @@ function render(){
 }
 window.requestAnimationFrame(render)
 
-// start game
+// Start game
 Activity.startActivity(new StartScreen())
 
 /**
