@@ -45,6 +45,9 @@ function distributeEvent(event)
         }
     }
 
+    // Browser default action corresponding to cancel the event
+    event.preventDefault()
+
     // Distribute events to the current Activity
     let activity = Activity.getCurrentActivity()
     if (activity !== null){
