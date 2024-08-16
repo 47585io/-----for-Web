@@ -1,15 +1,8 @@
-const startScreenWidth = 1012
-const startScreenHeight = 453
-const backgroundWidth = 1012
-const backgroundHeight = 396
-const groundY = 360
 
 var DEBUG = true
 var WindowLoaded = false
-
 var canvas = document.getElementById("display")
 var context = canvas.getContext("2d")
-var scenes = new Scenes(backgroundWidth, backgroundHeight, groundY)
 
 // register EventListener
 window.onload = resizeActivity
@@ -36,7 +29,7 @@ function resizeActivity(){
  */
 function distributeEvent(event)
 {
-    // When the user gestu re is triggered for the first time
+    // When the user gesture is triggered for the first time
     // Create and Resume audioContext for FileUtils.loadMusic()
     if (audioContext === undefined){ 
         audioContext = new (window.AudioContext || window.webkitAudioContext)()  
@@ -50,7 +43,7 @@ function distributeEvent(event)
 
     // Distribute events to the current Activity
     let activity = Activity.getCurrentActivity()
-    if (activity !== null){
+    if (activity !== null && activity.isRunning){
         return activity.distributeEvent(event)
     }
     return false
@@ -67,124 +60,7 @@ function render(){
 }
 window.requestAnimationFrame(render)
 
-
-class StartScreen extends Activity
-{
-    constructor(){
-        super()
-        this.startImage = null
-        FileUtils.loadImage(Res.pictures.game_over)
-        .then(image => {
-            this.startImage = image
-            return image
-        })
-    }
-
-    onResize(){
-        putDisplayElementToMiddle(startScreenWidth, startScreenHeight, window.innerWidth, window.innerHeight)
-    }
-
-    render(context){
-        if(this.startImage !== null)
-            context.drawImage(this.startImage, 0, 0)
-    }
-
-    distributeEvent(event)
-    {
-        if(this.startImage !== undefined){
-            Activity.startActivity(new GameScreen())
-        }
-    }
-}
-
-class GameScreen extends Activity
-{
-    constructor(){
-        super()
-        this.gameIcons = null
-        FileUtils.loadAnimation(Res.animation.icon_item).then(icons => {
-            this.gameIcons = icons
-            return icons
-        })
-    }
-
-    onStart(){
-        scenes.mGameManger.init()
-    }
-    
-    /**
-     * When the window size changes, adjust the canvas size
-     */
-    onResize(){
-        putDisplayElementToMiddle(scenes.mWidth, scenes.mHeight, window.innerWidth, window.innerHeight)
-    }
-
-    /**
-     * Update and draw game scenes
-     * @param {CanvasRenderingContext2D} context 
-     */
-    render(context){
-        scenes.update()
-        scenes.draw(context)
-        this.drawGameStatePanel(context)
-    }
-    
-    drawGameStatePanel(context)
-    {
-        if(this.gameIcons !== null && scenes.mCurrentHero !== null){
-            let s = this.gameIcons[Res.icon.clover]
-            let heal = scenes.mCurrentHero.healthy
-            let x = this.drawIcon(context, s, 0, 0, heal)
-            let sprite = this.gameIcons[Res.icon.surround_star]
-            this.drawIcon(context, sprite, x  + 10, 0, scenes.mGameManger.getHeroScore().toString())
-        }
-    }
-
-    /**
-     * Draw Icon and text, include in a rectangle
-     * @param {CanvasRenderingContext2D} context 
-     * @param {Sprite} sprite icon to draw
-     * @param {number} x start position
-     * @param {number} y start position
-     * @param {string} text text to draw
-     * @returns {number} X coordinate of the end position drawn
-     */
-    drawIcon(context, sprite, x, y, text)
-    {
-        const div = 10
-        let bounds = sprite.bounds
-        let imageWidth = sprite.bounds.width()
-        let imageHeight = sprite.bounds.height()
-        let textMetrics = context.measureText(text)
-        let textWidth = textMetrics.width
-        let textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
-
-        context.fillStyle = "rgba(0, 0, 0, 0.5)"
-        context.beginPath()
-        context.roundRect(x, y, imageWidth + textWidth + 3 * div, imageHeight + 2.* div, 10)
-        context.fill()
-
-        context.drawImage(sprite.image, bounds.left, bounds.top, imageWidth, imageHeight,
-            x + div, y + div, imageWidth, imageHeight)
-
-        
-        context.fillStyle = "rgb(255, 255, 255)"
-        context.font = "35px monospace"
-        context.textBaseline = "top"
-        let off = (imageHeight - textHeight) / 2
-        context.fillText(text, x + imageWidth + 2 * div, y + div + off)
-        return x + imageWidth + textWidth + 3 * div
-    }
-
-    /**
-     * Distribute events to the scenes
-     * @param {Event} event Distribute event
-     * @returns {boolean} if consume event, return true
-    */
-    distributeEvent(event){
-        return scenes.dispatchEvent(event)
-    }
-}
+// start game
 Activity.startActivity(new StartScreen())
 
 /**

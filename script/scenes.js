@@ -1,15 +1,6 @@
 /**
  * A class for storing obstacles, 
- * managing the update, drawing and event of a group of obstacles.
- * 
- * Never add or remove obstacles directly！ 
- * This can lead to unpredictable errors in the traversal.
- * 
- * You must use addObstacle(obstacle, true) to add obstacle,
- * This will assign it an appropriate time to add. (not in the traversal)
- * 
- * You must use obstacle.kill() to remove obstacle,
- * This will assign it an appropriate time to remove. (not in the traversal)
+ * managing the update, drawing, collision and event of a group of obstacles.
  */
 class Scenes
 {
@@ -30,7 +21,6 @@ class Scenes
 
         this.mCurrentHero = null
         this.mObstacles = new Array()
-        this.mCachedObstacles = new Array()
         this.mGameManger = new GameManger(this)
     }
 
@@ -40,17 +30,9 @@ class Scenes
      * obstacles with lower priority will be placed earlier in the list, 
      * obstacles earlier in the list will be drawn first
      * @param {Obstacle} obstacle 
-     * @param {boolean} cached if cached === true
-     *      Delayed adding of an obstacle to the scenes, 
-     * T    his will assign it an appropriate time to add. (not in the traversal)
      */
-    addObstacle(obstacle, cached = false)
+    addObstacle(obstacle)
     {
-        if(cached){
-            this.mCachedObstacles.push(obstacle)
-            return
-        }
-
         obstacle.mScenes = this
         this.mObstacles.push(obstacle)
         this.mObstacles.sort((o1, o2) =>{
@@ -61,7 +43,7 @@ class Scenes
 
     /**
      * Remove elements from the specified position in the array
-     * Renove an element in an ordered array will not mess up the order of the array
+     * Remove an element in an ordered array will not mess up the order of the array
      * @private
      * @param {number} index 
      */
@@ -98,67 +80,55 @@ class Scenes
     }
 
     /**
-     * Clear all obstacles in the scenes, 
-     * and reset scenes state
-     */
-    clear(){
-       this.mObstacles.splice(0, this.mObstacles.length)
-       this.mCachedObstacles.splice(0, this.mCachedObstacles.length)
-       this.mCurrentHero = null
-    }
-
-    /**
      * Update the location of obstacles in the scenes, 
-     * and check their collisions, 
-     * and clear all dead obstacle or leave the scenes
+     * and Check their collisions, 
+     * and clear all dead obstacle or leave the scenes,
+     * and Creat new obstacle on the right side of the scenes 
      */
     update()
     {
         if(this.mCurrentHero === null){
             return
         }
+
         // Follow hero
-        let hero = this.mCurrentHero
+        const hero = this.mCurrentHero
         this.mScroll += hero.xSpeed
 
         // Update the location of each obstacle
-        for(let obstacle of this.mObstacles){
+        for(const obstacle of this.mObstacles){
             obstacle.mBounds.offset(-hero.xSpeed, this.mGravity)
             obstacle.update()
         }
 
         // Check hero's collision with each obstacle
         if(hero.canCollision()){
-            for(let obstacle of this.mObstacles){
+            const heroCollisionBounds = hero.getCollisionBounds()
+            for(const obstacle of this.mObstacles){
                 if(obstacle !== hero && obstacle.canCollision() 
-                    && hero.mBounds.intersects(obstacle.mBounds))
+                    && heroCollisionBounds.intersects(obstacle.getCollisionBounds()))
                     this.mGameManger.onCollision(hero, obstacle)
             }
         }
 
-        // Keep obstacles in the scenes above the ground
-        for(let obstacle of this.mObstacles){
-            if(obstacle.mBounds.bottom > this.mGroundY){
-                let yOffset = obstacle.mBounds.bottom - this.mGroundY
-                obstacle.mBounds.offset(0, -yOffset)
-            }
-        }
-        
         // Clear all dead obstacle or leave the scenes
         for(let i = 0; i < this.mObstacles.length; ++i){
-            let obstacle = this.mObstacles[i]
+            const obstacle = this.mObstacles[i]
             if(!obstacle.isActive() || obstacle.mBounds.right < 0){
                 this.removeObstacleAt(i--)
             }
         }
 
+        // Keep obstacles in the scenes above the ground
+        for(const obstacle of this.mObstacles){
+            if(obstacle.mBounds.bottom > this.mGroundY){
+                const yOffset = obstacle.mBounds.bottom - this.mGroundY
+                obstacle.mBounds.offset(0, -yOffset)
+            }
+        }
+
         // Creat new obstacle on the right side of the scenes 
         this.mGameManger.creatObstacleIfhasNext()
-        // Add all cached obstacle to the scenes
-        for(let obstacle of this.mCachedObstacles){
-            this.addObstacle(obstacle)
-        }
-        this.mCachedObstacles.splice(0, this.mCachedObstacles.length)
     }
 
     /**
@@ -173,7 +143,7 @@ class Scenes
         }
         
         // Draw obstacles in the scenes
-        for(let obstacle of this.mObstacles){
+        for(const obstacle of this.mObstacles){
             obstacle.draw(context)
         }
     }
@@ -237,39 +207,20 @@ class GameManger
     constructor(scenes)
     {
         this.mScenes = scenes
-        this.mBackgroundMusic = null
         this.timer = 0
         this.nextTime = this.randInt(GameManger.MIN_CREAT_TIME, GameManger.MAX_CREAT_TIME)
-
-        FileUtils.loadImage(Res.pictures.background)
-            .then(res => {
-                scenes.mBackgroundImage = res
-                return res
-            })
+        
+        const hero = new Hero()
+        hero.prepare(obstacle => {
+            this.mScenes.addObstacle(obstacle)
+            this.mScenes.mCurrentHero = obstacle 
+            const dx = (this.mScenes.mWidth >> 1) - (obstacle.mBounds.width() >> 1)
+            bounds.offsetTo(dx, 0)
+        })
     }
 
     getHeroScore(){
-        
         return this.mScenes.mScroll + this.mScenes.mCurrentHero.score
-    }
-
-    init()
-    {
-        FileUtils.loadMusic(Res.music.background).then(sound => {
-            this.mBackgroundMusic = creatAudioBufferSourceNode(sound)
-            this.mBackgroundMusic.loop = true
-            this.mBackgroundMusic.start()
-            return sound
-        })
-
-        let hero = new Hero()
-        hero.prepare(obstacle => {
-            this.mScenes.addObstacle(obstacle)
-            this.mScenes.mCurrentHero = obstacle
-            let bounds = hero.mBounds
-            let dx = (this.mScenes.mWidth >> 1) - (bounds.width() >> 1)
-            bounds.offsetTo(dx, 0)
-        })
     }
 
     onCollision(hero, other)
@@ -284,9 +235,10 @@ class GameManger
         }
     }
 
-    exit(){
-
-    }
+    /**
+     * 
+     */
+    exit(){}
 
     creatObstacleIfhasNext(){
         if(this.timer === this.nextTime){
