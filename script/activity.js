@@ -43,7 +43,7 @@ class Activity
 
     /**
      * Remove the activity at the top of the stack,
-     * and switch to the previous activity
+     * and switch to the last activity
      */
     static exitActivity() 
     {

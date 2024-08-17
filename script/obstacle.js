@@ -45,7 +45,7 @@ class Obstacle
     /**
      * The method of callback before you will added to the scenes, 
      * prepare your data until you're ready to call finish, 
-     * you must set your mActiveAnimation and mBounds
+     * you must set your mBounds
      * @param {(obstacle: Obstacle) => void} finish  finish(this), 
      *      The callback of When the data preparation is completed, 
      *      it is used to notify the scenes to add you to the scenes
@@ -65,7 +65,8 @@ class Obstacle
     onRemoveFromScenes(scenes){}
 
     /**
-     * switch mActiveAnimation to animation and start animation
+     * switch mActiveAnimation to animation and start animation,
+     * and set mCurrentSprite and mBounds to the first frame of the animation
      * @param {FrameAnimation} animation 
      */
     startAnimation(animation){
@@ -88,13 +89,12 @@ class Obstacle
     }
 
     /**
-     * load Animation at first time for the obstacle
+     * load Animation for the obstacle
      * @param {string} path load animation path (call to FileUtils.loadAnimation(path))
      * @param {(animation: FrameAnimation) => void} configAnimation
      *      the callback are used to animation or perform other operations,
      *      it is called at the end of the function without worrying about any dependencies
      * @param {boolean} setActive if true, startAnimation to it,
-     *      and set mCurrentSprite and mBounds to the first frame of the animation
      */
     loadAnimation(path, configAnimation = undefined, setActive = true)
     {
