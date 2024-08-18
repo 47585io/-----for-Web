@@ -13,19 +13,16 @@ class FrameAnimation
         this.currentIndex = 0
     }
 
-    /**
-     * reset time for animation
-     */
-    start(){
+    /** reset time for animation */
+    start() 
+    {
         this.delta = 0
         this.currentIndex = 0
         if(this.mAnimationListener !== null)
             this.mAnimationListener.onAnimationStart(this)
     }
 
-    /**
-     * Update time to next frame, 
-     */
+    /** Update time to next frame */
     update()
     {
         this.delta++;
@@ -69,7 +66,7 @@ class FrameAnimation
 
     /**
      * get keyFrame of current delta time
-     * @returns {Sprite} current keyFrame image
+     * @returns {Sprite} current keyFrame
      */
     getCurrentFrame(){
         return this.keyFrames[this.currentIndex]

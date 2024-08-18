@@ -10,6 +10,7 @@
  * 
  * Try to have many Activities, 
  * but always keep only one Activity in the foreground.
+ * 
  * Usually you should use getCurrentActivity() in external code to get the current Activity, 
  * and then only draw that Activity or dispatch events to it.
  */
@@ -17,10 +18,6 @@ class Activity
 {
     static mActivityStack = new Array()
     static mCurrentIndex = -1
-
-    constructor(){
-        this.isRunning = false
-    }
 
     /**
      * Add an Activity to the top of the stack, 
@@ -36,9 +33,6 @@ class Activity
         Activity.mActivityStack.push(activity);
         Activity.mCurrentIndex++;
         activity.onStart(); 
-        if(WindowLoaded){
-            activity.onResize()
-        }
     }
 
     /**
@@ -55,9 +49,6 @@ class Activity
         if (Activity.mCurrentIndex >= 0) {
             const previousActivity = Activity.mActivityStack[Activity.mCurrentIndex];
             previousActivity.onResume();
-            if(WindowLoaded){
-                previousActivity.onResize()
-            }
         }
     }
 
@@ -77,12 +68,17 @@ class Activity
         return this.mActivityStack.length
     }
 
+    constructor(){
+        this.isRunning = false
+    }
+
     /**
      * When the Activity Add to the stack,
      * the method is called
      */
     onStart(){
         this.isRunning = true
+        if(WindowLoaded) this.onResize()
     }
 
     /**
@@ -99,6 +95,7 @@ class Activity
      */
     onResume(){
         this.isRunning = true
+        if(WindowLoaded) this.onResize()
     }
     
     /**
@@ -156,7 +153,7 @@ class StartScreen extends Activity
     }
 
     distributeEvent(event){
-        if(this.startImage !== null)
+        if(this.isRunning && this.startImage !== null)
             Activity.startActivity(new GameScreen())
     }
 }
@@ -224,10 +221,8 @@ class GameScreen extends Activity
         this.drawGameStatePanel(context)
     }
     
-    drawGameStatePanel(context)
-    {
-        if(this.mScenes.mCurrentHero !== null)
-        {
+    drawGameStatePanel(context){
+        if(this.mScenes.mCurrentHero !== null){
             const heal = this.mScenes.mCurrentHero.healthy
             const x = drawIcon(context, Res.icon.clover, 0, 0, heal.toString())
             const score = this.mScenes.mGameManger.getHeroScore()
@@ -241,7 +236,7 @@ class GameScreen extends Activity
      * @returns {boolean} if consume event, return true
     */
     distributeEvent(event){ 
-        return this.mScenes.dispatchEvent(event)
+        return this.isRunning ? this.mScenes.dispatchEvent(event) : false
     }
 }
 

@@ -41,7 +41,7 @@ function distributeEvent(event)
 
     // Distribute events to the current Activity
     let activity = Activity.getCurrentActivity()
-    if (activity !== null && activity.isRunning){
+    if (activity !== null){
         return activity.distributeEvent(event)
     }
     return false

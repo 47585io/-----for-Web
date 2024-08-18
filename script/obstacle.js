@@ -206,6 +206,10 @@ class Hero extends Obstacle
         this.setPriority(255)
     }
 
+    isActive(){
+        return super.isActive() && this.healthy > 0
+    }
+
     prepare(finish)
     {
         // Each task completes, prepareCount--
