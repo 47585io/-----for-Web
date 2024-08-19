@@ -122,8 +122,8 @@ class Scenes
         // Keep obstacles in the scenes above the ground
         for(const obstacle of this.mObstacles){
             if(obstacle.mBounds.bottom > this.mGroundY){
-                const yOffset = obstacle.mBounds.bottom - this.mGroundY
-                obstacle.mBounds.offset(0, -yOffset)
+                const yOffset = this.mGroundY - obstacle.mBounds.bottom
+                obstacle.mBounds.offset(0, yOffset)
             }
         }
 

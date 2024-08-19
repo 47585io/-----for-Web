@@ -412,3 +412,31 @@ class Pillar extends Obstacle
             other.mBounds.offset(-other.xSpeed, 0)
     }
 }
+
+class Cube extends Obstacle
+{
+    onCollision(other)
+    {
+        const selfBounds = this.getCollisionBounds()
+        const otherBounds = other.getCollisionBounds()
+        const leftArea = (selfBounds.left - otherBounds.left) * otherBounds.height()
+        const topArea = otherBounds.width() * (selfBounds.top - otherBounds.top)
+        const rightArea = (otherBounds.right - selfBounds.right) * otherBounds.height()
+        const bottomArea = otherBounds.width() * (otherBounds.bottom - selfBounds.bottom)
+        const maxArea = Math.max(leftArea, topArea, rightArea, bottomArea)
+        
+        let xOffset = 0
+        let yOffset = 0
+        if(maxArea === leftArea){
+            xOffset = selfBounds.left - otherBounds.right
+        }else if(maxArea === topArea){
+            yOffset = selfBounds.top - otherBounds.bottom
+        }else if(maxArea === rightArea){
+            xOffset = selfBounds.right - otherBounds.left
+        }else if(maxArea === bottomArea){
+            yOffset = selfBounds.bottom - otherBounds.top 
+        }
+        // Apply changes to other.mBounds at last
+        other.mBounds.offset(xOffset, yOffset)
+    }
+}

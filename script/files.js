@@ -47,7 +47,7 @@ class Res
         static lucky = 7
         static rose = 8
         static lily = 9
-        static withered_flower = 10
+        static withered = 10
         static wheat = 11
 
         static red_love = 12
@@ -208,7 +208,7 @@ class FileUtils
  * @returns {AudioBufferSourceNode}
  */
 function creatAudioBufferSourceNode(audioBuffer){
-    let source = audioContext.createBufferSource()
+    const source = audioContext.createBufferSource()
     source.buffer = audioBuffer
     source.connect(audioContext.destination)
     return source

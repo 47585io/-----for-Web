@@ -4,7 +4,7 @@
  * These fields can be accessed directly.
  * Use width() and height() to retrieve the rectangle's width and height.
  */
-class Rect extends Object
+class Rect
 {
     /**
      * Create a new rectangle by the specified coordinates or another rectangle
@@ -15,7 +15,6 @@ class Rect extends Object
      * - Rect(r: Rect) Create a new rectangle by copying another rectangle
      */
     constructor(){
-        super()
         if(arguments.length == 0)
             this.set(0, 0, 0, 0)
         else
@@ -404,10 +403,10 @@ class RectUtils
     }
 
     /**
-     * 
-     * @param {Rect} src 
-     * @param {Rect} insets 
-     * @returns {Rect}
+     * Computes the rectangle of the src rectangle is inseted the insets rectangle
+     * @param {Rect} src source rectangle
+     * @param {Rect} insets insets rectangle
+     * @returns {Rect} Returns a new rectangle they insets
      */
     static getInsetRect(src, insets){
         let ret = new Rect(src)

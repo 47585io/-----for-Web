@@ -68,6 +68,7 @@ class Activity
         return this.mActivityStack.length
     }
 
+    /** Activity onCreat */
     constructor(){
         this.isRunning = false
     }
@@ -128,6 +129,12 @@ class Activity
     }
 }
 
+let save = localStorage.getItem("score")
+let maxScore = save === null ? 0 : new Number(save)
+
+/**
+ * Game start interface
+ */
 class StartScreen extends Activity
 {
     static startWidth = 1012
@@ -148,13 +155,18 @@ class StartScreen extends Activity
     }
 
     render(context){
-        if(this.startImage !== null)
+        if(this.startImage !== null){
             context.drawImage(this.startImage, 0, 0)
+            drawIcon(context, Res.icon.surround_star, 0, 0, maxScore)
+        }   
     }
 
     distributeEvent(event){
-        if(this.isRunning && this.startImage !== null)
+        if(this.isRunning && this.startImage !== null){
             Activity.startActivity(new GameScreen())
+            return true
+        }
+        return false
     }
 }
 
@@ -200,6 +212,7 @@ class GameScreen extends Activity
 
     onStop(){
         super.onStop()
+        localStorage.setItem("score", maxScore.toString())
         this.mBackgroundMusic.stop()
     }
     
@@ -227,6 +240,7 @@ class GameScreen extends Activity
             const x = drawIcon(context, Res.icon.clover, 0, 0, heal.toString())
             const score = this.mScenes.mGameManger.getHeroScore()
             drawIcon(context, Res.icon.surround_star, x + div, 0, score.toString())
+            maxScore = score > maxScore ? score : maxScore
         }
     }
 
@@ -279,7 +293,6 @@ function drawIcon(context, icon, x, y, text)
 
     context.drawImage(sprite.image, bounds.left, bounds.top, imageWidth, imageHeight,
         x + div, y + div, imageWidth, imageHeight)
-
     
     context.fillStyle = "rgb(255, 255, 255)"
     context.font = "35px monospace"
